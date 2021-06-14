@@ -1,0 +1,9 @@
+allow:
+  - net
+
+scripts:
+  start:
+    desc: run main.ts
+    cmd: src/main.ts
+    allow:
+      - net
