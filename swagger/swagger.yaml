@@ -1,0 +1,113 @@
+openapi: 3.0.0
+info:
+  title: Dainagon
+  description: Server Side Api
+  version: 1.0.0
+
+paths:
+  /question:
+    get:
+      summary: Get questions list
+      responses:
+        "200":
+          description: Response JSON
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuestionHeader"
+              example:
+                - questionNumber: 1
+                  title: Hello World
+                - questionNumber: 2
+                  title: Add
+
+  /question/{questionNumber}:
+    get:
+      summary: Get Question
+      parameters:
+        - in: path
+          name: questionNumber
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Response Json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Question"
+              example:
+                questionNumber: 2
+                title: Add
+                description: Let's add two values together
+                inputs: ["1 1", "2 4", "3 2"]
+                answers: ["2", "6", "5"]
+
+  /answer:
+    post:
+      summary: Post user's answer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserAnswer"
+      responses:
+        "201":
+          description: Created
+
+components:
+  schemas:
+    QuestionHeader:
+      type: object
+      properties:
+        questionNumber:
+          type: integer
+        title:
+          type: string
+      required:
+        - questionNumber
+        - title
+
+    Question:
+      type: object
+      properties:
+        questionNumber:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        inputs:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        answers:
+          type: array
+          items:
+            type: string
+          minItems: 1
+      required:
+        - questionNumber
+        - title
+        - description
+        - inputs
+        - answers
+
+    UserAnswer:
+      type: object
+      properties:
+        userID:
+          type: integer
+        questionNumber:
+          type: integer
+        isCorrect:
+          type: boolean
+      required:
+        - userID
+        - questionNumber
+        - isCorrect
