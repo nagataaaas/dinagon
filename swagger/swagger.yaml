@@ -7,6 +7,8 @@ info:
 paths:
   /question:
     get:
+      security:
+        - cookieAuth: []
       summary: Get questions list
       responses:
         "200":
