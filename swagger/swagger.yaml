@@ -117,7 +117,7 @@ components:
       properties:
         input:
           type: string
-        ecpected:
+        expected:
           type: string
       required:
         - input
