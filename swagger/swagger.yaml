@@ -135,6 +135,9 @@ components:
           type: string
         syntax:
           type: string
+      required:
+        - title
+        - syntax
 
     UserAnswer:
       type: object
