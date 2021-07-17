@@ -18,9 +18,9 @@ paths:
                 items:
                   $ref: "#/components/schemas/QuestionHeader"
               example:
-                - questionNumber: 1
+                - questionNumber: 3fa85f64-5717-4562-b3fc-2c963f66afa6
                   title: Hello World
-                - questionNumber: 2
+                - questionNumber: 2ca83d64-5532-3542-ff24-1d462a22dac4
                   title: Add
 
   /question/{questionNumber}:
@@ -40,11 +40,18 @@ paths:
               schema:
                 $ref: "#/components/schemas/Question"
               example:
-                questionNumber: 2
+                questionNumber: 2ca83d64-5532-3542-ff24-1d462a22dac4
                 title: Add
                 description: Let's add two values together
-                inputs: ["1 1", "2 4", "3 2"]
-                answers: ["2", "6", "5"]
+                TestCases:
+                  inputs: ["1 1", "2 4", "3 2"]
+                  answers: ["2", "6", "5"]
+                  errorMessages: ["Wrong value", "Wrong value", "Wrong value"]
+                SyntaxAnalyses:
+                  - title: Does it contain a return statement?
+                    syntax: Write the syntax here
+                  - title: Is the plus operator included?
+                    sysntax: Write the syntax here
 
   /answer:
     post:
@@ -65,7 +72,8 @@ components:
       type: object
       properties:
         questionNumber:
-          type: integer
+          type: string
+          format: uuid
         title:
           type: string
       required:
@@ -76,11 +84,30 @@ components:
       type: object
       properties:
         questionNumber:
-          type: integer
+          type: string
+          format: uuid
         title:
           type: string
         description:
           type: string
+        TestCases:
+          type: array
+          items:
+            $ref: "#/components/schemas/TestCase"
+        SyntaxAnalyses:
+          type: array
+          items:
+            $ref: "#/components/schemas/SyntaxAnalysis"
+      required:
+        - questionNumber
+        - title
+        - description
+        - TestCases
+        - SyntaxAnalyses
+
+    TestCase:
+      type: object
+      properties:
         inputs:
           type: array
           items:
@@ -91,20 +118,33 @@ components:
           items:
             type: string
           minItems: 1
+        errorMessages:
+          type: array
+          items:
+            type: string
+          minItems: 1
       required:
-        - questionNumber
-        - title
-        - description
         - inputs
         - answers
+        - errorMessages
+
+    SyntaxAnalysis:
+      type: object
+      properties:
+        title:
+          type: string
+        syntax:
+          type: string
 
     UserAnswer:
       type: object
       properties:
         userID:
-          type: integer
+          type: string
+          format: uuid
         questionNumber:
-          type: integer
+          type: string
+          format: uuid
         isCorrect:
           type: boolean
       required:
