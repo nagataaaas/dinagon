@@ -60,10 +60,13 @@ paths:
                     message: 加算が行われていない可能性があります
                   - assertion: "'return' in code"
                     message: 関数から値が返されていない可能性があります
+                answeredCorrectly: false
 
   /answer:
     post:
       summary: Post user's answer
+      security:
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -75,6 +78,12 @@ paths:
           description: Created
 
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: userID
+
   schemas:
     QuestionHeader:
       type: object
@@ -106,12 +115,15 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Assertion"
+        answeredCorrectly:
+          type: boolean
       required:
         - questionID
         - title
         - description
         - TestCases
         - Assertions
+        - answeredCorrectly
 
     TestCase:
       type: object
@@ -138,15 +150,11 @@ components:
     UserAnswer:
       type: object
       properties:
-        userID:
-          type: string
-          format: uuid
         questionID:
           type: string
           format: uuid
         isCorrect:
           type: boolean
       required:
-        - userID
         - questionID
         - isCorrect
