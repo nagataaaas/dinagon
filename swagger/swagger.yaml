@@ -5,10 +5,30 @@ info:
   version: 1.0.0
 
 paths:
+  /login:
+    post:
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: >
+            Successfully authenticated.
+            The session ID is returned in a cookie named `sessionToken`. You need to include this cookie in subsequent requests.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: sessionToken=eyJpc3MiOiJ0b3B0YWwuY29tIiwiZXhwIjoxNDI2NDIwODAwLCJodHRwOi8vdG9wdGFsLmNvbS9qd3RfY2xhaW1zL2lzX2FkbWluIjp0cnVlLCJjb21wYW55IjoiVG9wdGFsIiwiYXdlc29tZSI6dHJ1ZX0; Path=/; HttpOnly
+
   /question:
     get:
       security:
-        - cookieAuth: []
+          - cookieAuth: []
       summary: Get questions list
       responses:
         "200":
@@ -18,15 +38,19 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/QuestionHeader"
+                  $ref: "#/components/schemas/QuestionListItem"
               example:
                 - questionID: 3fa85f64-5717-4562-b3fc-2c963f66afa6
                   title: Hello World
+                  answeredCorrectly: true
                 - questionID: 2ca83d64-5532-3542-ff24-1d462a22dac4
                   title: Add
+                  answeredCorrectly: false
 
   /question/{questionID}:
     get:
+      security:
+          - cookieAuth: []
       summary: Get Question
       parameters:
         - in: path
@@ -84,10 +108,18 @@ components:
     cookieAuth:
       type: apiKey
       in: cookie
-      name: userID
+      name: sessionToken
 
   schemas:
-    QuestionHeader:
+    LoginRequest:
+      type: object
+      properties:
+        displayID:
+          type: string
+        password:
+          type: string
+
+    QuestionListItem:
       type: object
       properties:
         questionID:
@@ -95,9 +127,12 @@ components:
           format: uuid
         title:
           type: string
+        answeredCorrectly:
+          type: boolean
       required:
         - questionID
         - title
+        - answeredCorrectly
 
     Question:
       type: object
