@@ -28,7 +28,7 @@ paths:
   /question:
     get:
       security:
-          - cookieAuth: []
+        - cookieAuth: []
       summary: Get questions list
       responses:
         "200":
@@ -50,7 +50,7 @@ paths:
   /question/{questionID}:
     get:
       security:
-          - cookieAuth: []
+        - cookieAuth: []
       summary: Get Question
       parameters:
         - in: path
@@ -70,7 +70,7 @@ paths:
                 questionID: 2ca83d64-5532-3542-ff24-1d462a22dac4
                 title: Add
                 description: Let's add two values together
-                TestCases:
+                testCases:
                   - input: 1,2
                     expected: 3
                   - input: 0,0
@@ -81,7 +81,7 @@ paths:
                     expected: 2.3
                   - input: 1.5,2.5
                     expected: 4.0
-                Assertions:
+                assertions:
                   - assertion: "'+' in code"
                     message: 加算が行われていない可能性があります
                   - assertion: "'return' in code"
@@ -144,11 +144,11 @@ components:
           type: string
         description:
           type: string
-        TestCases:
+        testCases:
           type: array
           items:
             $ref: "#/components/schemas/TestCase"
-        Assertions:
+        assertions:
           type: array
           items:
             $ref: "#/components/schemas/Assertion"
@@ -158,8 +158,8 @@ components:
         - questionID
         - title
         - description
-        - TestCases
-        - Assertions
+        - testCases
+        - assertions
         - answeredCorrectly
 
     TestCase:
