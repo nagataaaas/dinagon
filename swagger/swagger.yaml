@@ -118,6 +118,9 @@ components:
           type: string
         password:
           type: string
+      required:
+        - displayID
+        - password
 
     QuestionListItem:
       type: object
