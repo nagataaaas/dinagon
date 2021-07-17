@@ -31,7 +31,8 @@ paths:
           name: questionID
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       responses:
         "200":
           description: Response Json
