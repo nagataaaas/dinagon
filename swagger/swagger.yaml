@@ -1,200 +1,339 @@
-openapi: 3.0.0
+openapi: 3.0.2
 info:
-  title: Dainagon
+  title: Dinagon
   description: Server Side Api
-  version: 1.0.0
-
+  version: 0.1 alpha
 paths:
-  /login:
+  "/login":
     post:
       summary: Login
+      operationId: login_login_post
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LoginRequest"
+              "$ref": "#/components/schemas/LoginRequest"
+        required: true
       responses:
-        "200":
-          description: >
-            Successfully authenticated.
-            The session ID is returned in a cookie named `sessionToken`. You need to include this cookie in subsequent requests.
-          headers:
-            Set-Cookie:
-              schema:
-                type: string
-                example: sessionToken=eyJpc3MiOiJ0b3B0YWwuY29tIiwiZXhwIjoxNDI2NDIwODAwLCJodHRwOi8vdG9wdGFsLmNvbS9qd3RfY2xhaW1zL2lzX2FkbWluIjp0cnVlLCJjb21wYW55IjoiVG9wdGFsIiwiYXdlc29tZSI6dHJ1ZX0; Path=/; HttpOnly
-
-  /question:
-    get:
-      security:
-        - cookieAuth: []
-      summary: Get questions list
-      responses:
-        "200":
-          description: Response JSON
+        '200':
+          description: Successful Response
           content:
             application/json:
               schema:
+                "$ref": "#/components/schemas/LoginResponse"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/login/refresh":
+    post:
+      summary: Login Refresh
+      operationId: login_refresh_login_refresh_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/RefreshRequest"
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/LoginResponse"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/question":
+    get:
+      summary: Questions
+      operationId: questions_question_get
+      parameters:
+      - required: true
+        schema:
+          title: Sessiontoken
+          type: string
+        name: sessionToken
+        in: query
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                title: Response Questions Question Get
                 type: array
                 items:
-                  $ref: "#/components/schemas/QuestionListItem"
-              example:
-                - questionID: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-                  title: Hello World
-                  answeredCorrectly: true
-                - questionID: 2ca83d64-5532-3542-ff24-1d462a22dac4
-                  title: Add
-                  answeredCorrectly: false
-
-  /question/{questionID}:
-    get:
-      security:
-        - cookieAuth: []
-      summary: Get Question
-      parameters:
-        - in: path
-          name: questionID
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "200":
-          description: Response Json
+                  "$ref": "#/components/schemas/QuestionListItem"
+        '422':
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Question"
-              example:
-                questionID: 2ca83d64-5532-3542-ff24-1d462a22dac4
-                title: Add
-                description: Let's add two values together
-                testCases:
-                  - input: 1,2
-                    expected: 3
-                  - input: 0,0
-                    expected: 0
-                  - input: 0,5
-                    expected: 5
-                  - input: 1.1,1.2
-                    expected: 2.3
-                  - input: 1.5,2.5
-                    expected: 4.0
-                assertions:
-                  - assertion: "'+' in code"
-                    message: 加算が行われていない可能性があります
-                  - assertion: "'return' in code"
-                    message: 関数から値が返されていない可能性があります
-                answeredCorrectly: false
-
-  /answer:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/question/{questionID}":
+    get:
+      summary: Questions
+      operationId: questions_question__questionID__get
+      parameters:
+      - required: true
+        schema:
+          title: Questionid
+          type: string
+          format: uuid
+        name: questionID
+        in: path
+      - required: true
+        schema:
+          title: Sessiontoken
+          type: string
+        name: sessionToken
+        in: query
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Question"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/answer":
     post:
-      summary: Post user's answer
-      security:
-        - cookieAuth: []
+      summary: Questions
+      operationId: questions_answer_post
+      parameters:
+      - required: true
+        schema:
+          title: Sessiontoken
+          type: string
+        name: sessionToken
+        in: query
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserAnswer"
+              "$ref": "#/components/schemas/UserAnswerRequest"
+        required: true
       responses:
-        "201":
-          description: Created
-
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/UserAnswerRequest"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
 components:
-  securitySchemes:
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: sessionToken
-
   schemas:
-    LoginRequest:
-      type: object
-      properties:
-        displayID:
-          type: string
-        password:
-          type: string
-      required:
-        - displayID
-        - password
-
-    QuestionListItem:
-      type: object
-      properties:
-        questionID:
-          type: string
-          format: uuid
-        title:
-          type: string
-        answeredCorrectly:
-          type: boolean
-      required:
-        - questionID
-        - title
-        - answeredCorrectly
-
-    Question:
-      type: object
-      properties:
-        questionID:
-          type: string
-          format: uuid
-        title:
-          type: string
-        description:
-          type: string
-        testCases:
-          type: array
-          items:
-            $ref: "#/components/schemas/TestCase"
-        assertions:
-          type: array
-          items:
-            $ref: "#/components/schemas/Assertion"
-        answeredCorrectly:
-          type: boolean
-      required:
-        - questionID
-        - title
-        - description
-        - testCases
-        - assertions
-        - answeredCorrectly
-
-    TestCase:
-      type: object
-      properties:
-        input:
-          type: string
-        expected:
-          type: string
-      required:
-        - input
-        - expected
-
     Assertion:
+      title: Assertion
+      required:
+      - assertion
+      - message
       type: object
       properties:
         assertion:
+          title: Assertion
           type: string
         message:
+          title: Message
           type: string
+      example:
+        assertion: "'+' in code"
+        message: 加算が行われていない可能性があります
+    HTTPValidationError:
+      title: HTTPValidationError
+      type: object
+      properties:
+        detail:
+          title: Detail
+          type: array
+          items:
+            "$ref": "#/components/schemas/ValidationError"
+    LoginRequest:
+      title: LoginRequest
       required:
-        - assertion
-        - message
-
-    UserAnswer:
+      - displayID
+      - password
+      type: object
+      properties:
+        displayID:
+          title: Displayid
+          type: string
+        password:
+          title: Password
+          type: string
+      example:
+        displayID: IamTestUser0123
+        password: x0D32SaAi#5
+    LoginResponse:
+      title: LoginResponse
+      required:
+      - sessionToken
+      - refreshToken
+      type: object
+      properties:
+        sessionToken:
+          title: Sessiontoken
+          type: string
+        refreshToken:
+          title: Refreshtoken
+          type: string
+      example:
+        sessionToken: "(JWT)"
+        refreshToken: "(JWT)"
+    Question:
+      title: Question
+      required:
+      - questionID
+      - title
+      - description
+      - testCases
+      - assertions
+      - answeredCorrectly
       type: object
       properties:
         questionID:
+          title: Questionid
+          type: string
+          format: uuid
+        title:
+          title: Title
+          type: string
+        description:
+          title: Description
+          type: string
+        testCases:
+          title: Testcases
+          type: array
+          items:
+            "$ref": "#/components/schemas/TestCase"
+        assertions:
+          title: Assertions
+          type: array
+          items:
+            "$ref": "#/components/schemas/Assertion"
+        answeredCorrectly:
+          title: Answeredcorrectly
+          type: boolean
+      example:
+        questionID: 2f644942-e039-4a1c-aab2-bfb8d67d5ff9
+        title: add 2 value
+        description: 2つの値が与えられると、それらの値を足し合わせた数字を返す関数 `add` を定義してください。
+        testCases:
+        - input: add(0, 0)
+          expected: '0'
+        - input: add(1, 1)
+          expected: '2'
+        - input: add(1.0, 1.0)
+          expected: '2.0'
+        - input: add(-1, 1)
+          expected: '0'
+        - input: add(-2, 1)
+          expected: "-1"
+        assertions:
+        - assertion: "'+' in code"
+          message: 加算が行われていない可能性があります
+        - assertion: add(0, 0) === undefined
+          message: 値が返却されていない可能性があります
+        answeredCorrectly: false
+    QuestionListItem:
+      title: QuestionListItem
+      required:
+      - questionID
+      - title
+      - answeredCorrectly
+      type: object
+      properties:
+        questionID:
+          title: Questionid
+          type: string
+          format: uuid
+        title:
+          title: Title
+          type: string
+        answeredCorrectly:
+          title: Answeredcorrectly
+          type: boolean
+      example:
+        questionID: 2f644942-e039-4a1c-aab2-bfb8d67d5ff9
+        title: add 2 value
+        answeredCorrectly: false
+    RefreshRequest:
+      title: RefreshRequest
+      required:
+      - refreshToken
+      type: object
+      properties:
+        refreshToken:
+          title: Refreshtoken
+          type: string
+      example:
+        refreshToken: "(JWT)"
+    TestCase:
+      title: TestCase
+      required:
+      - input
+      - expected
+      type: object
+      properties:
+        input:
+          title: Input
+          type: string
+        expected:
+          title: Expected
+          type: string
+      example:
+        input: add(1, 2)
+        expected: '3'
+    UserAnswerRequest:
+      title: UserAnswerRequest
+      required:
+      - questionID
+      - isCorrect
+      type: object
+      properties:
+        questionID:
+          title: Questionid
           type: string
           format: uuid
         isCorrect:
+          title: Iscorrect
           type: boolean
+      example:
+        questionID: 2f644942-e039-4a1c-aab2-bfb8d67d5ff9
+        isCorrect: false
+    ValidationError:
+      title: ValidationError
       required:
-        - questionID
-        - isCorrect
+      - loc
+      - msg
+      - type
+      type: object
+      properties:
+        loc:
+          title: Location
+          type: array
+          items:
+            type: string
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
