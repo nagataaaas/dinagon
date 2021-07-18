@@ -1,0 +1,200 @@
+openapi: 3.0.0
+info:
+  title: Dainagon
+  description: Server Side Api
+  version: 1.0.0
+
+paths:
+  /login:
+    post:
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: >
+            Successfully authenticated.
+            The session ID is returned in a cookie named `sessionToken`. You need to include this cookie in subsequent requests.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: sessionToken=eyJpc3MiOiJ0b3B0YWwuY29tIiwiZXhwIjoxNDI2NDIwODAwLCJodHRwOi8vdG9wdGFsLmNvbS9qd3RfY2xhaW1zL2lzX2FkbWluIjp0cnVlLCJjb21wYW55IjoiVG9wdGFsIiwiYXdlc29tZSI6dHJ1ZX0; Path=/; HttpOnly
+
+  /question:
+    get:
+      security:
+        - cookieAuth: []
+      summary: Get questions list
+      responses:
+        "200":
+          description: Response JSON
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuestionListItem"
+              example:
+                - questionID: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                  title: Hello World
+                  answeredCorrectly: true
+                - questionID: 2ca83d64-5532-3542-ff24-1d462a22dac4
+                  title: Add
+                  answeredCorrectly: false
+
+  /question/{questionID}:
+    get:
+      security:
+        - cookieAuth: []
+      summary: Get Question
+      parameters:
+        - in: path
+          name: questionID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Response Json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Question"
+              example:
+                questionID: 2ca83d64-5532-3542-ff24-1d462a22dac4
+                title: Add
+                description: Let's add two values together
+                testCases:
+                  - input: 1,2
+                    expected: 3
+                  - input: 0,0
+                    expected: 0
+                  - input: 0,5
+                    expected: 5
+                  - input: 1.1,1.2
+                    expected: 2.3
+                  - input: 1.5,2.5
+                    expected: 4.0
+                assertions:
+                  - assertion: "'+' in code"
+                    message: 加算が行われていない可能性があります
+                  - assertion: "'return' in code"
+                    message: 関数から値が返されていない可能性があります
+                answeredCorrectly: false
+
+  /answer:
+    post:
+      summary: Post user's answer
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserAnswer"
+      responses:
+        "201":
+          description: Created
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionToken
+
+  schemas:
+    LoginRequest:
+      type: object
+      properties:
+        displayID:
+          type: string
+        password:
+          type: string
+      required:
+        - displayID
+        - password
+
+    QuestionListItem:
+      type: object
+      properties:
+        questionID:
+          type: string
+          format: uuid
+        title:
+          type: string
+        answeredCorrectly:
+          type: boolean
+      required:
+        - questionID
+        - title
+        - answeredCorrectly
+
+    Question:
+      type: object
+      properties:
+        questionID:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        testCases:
+          type: array
+          items:
+            $ref: "#/components/schemas/TestCase"
+        assertions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Assertion"
+        answeredCorrectly:
+          type: boolean
+      required:
+        - questionID
+        - title
+        - description
+        - testCases
+        - assertions
+        - answeredCorrectly
+
+    TestCase:
+      type: object
+      properties:
+        input:
+          type: string
+        expected:
+          type: string
+      required:
+        - input
+        - expected
+
+    Assertion:
+      type: object
+      properties:
+        assertion:
+          type: string
+        message:
+          type: string
+      required:
+        - assertion
+        - message
+
+    UserAnswer:
+      type: object
+      properties:
+        questionID:
+          type: string
+          format: uuid
+        isCorrect:
+          type: boolean
+      required:
+        - questionID
+        - isCorrect
