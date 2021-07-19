@@ -7,13 +7,13 @@ from pydantic import BaseModel
 
 
 class LoginRequest(BaseModel):
-    displayID: str
+    email: str
     password: str
 
     class Config:
         schema_extra = {
             "example": {
-                "displayID": "IamTestUser0123",
+                "email": "test@test.com",
                 "password": "x0D32SaAi#5"
             }
         }
