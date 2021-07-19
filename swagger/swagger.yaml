@@ -3,6 +3,9 @@ info:
   title: Dinagon
   description: Server Side Api
   version: 0.1 alpha
+servers:
+    - url: http://localhost:8888/
+      description: Development Server
 paths:
   "/login":
     post:

@@ -5,12 +5,14 @@ from fastapi.staticfiles import StaticFiles
 
 from app.scheme import *
 from app.utils import encode_jwt, parse_session_token, parse_refresh_token
+from app.config import HOST, PORT
 import uuid
 
 api = FastAPI(
     title='Dinagon',
     version='0.1 alpha',
     description='Server Side Api',
+    servers=[{'url': 'http://localhost:{}/'.format(PORT), 'description': 'Development Server'}],
     debug=True
 )
 api.mount('/static', StaticFiles(directory='app/static'), name='static')
