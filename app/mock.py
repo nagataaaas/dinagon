@@ -3,6 +3,7 @@ import datetime
 from fastapi import FastAPI, status, Request, BackgroundTasks, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
 from jinja2 import Template, Environment, FileSystemLoader
 
 from app.scheme import *
@@ -18,6 +19,15 @@ api = FastAPI(
     servers=[{'url': 'http://localhost:{}/'.format(PORT), 'description': 'Development Server'}],
     debug=True
 )
+
+api.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
+
 api.mount('/static', StaticFiles(directory='app/static'), name='static')
 
 env = Environment(loader=FileSystemLoader('app/static/templates'))
