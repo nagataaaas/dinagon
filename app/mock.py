@@ -1,29 +1,29 @@
 import datetime
+import uuid
 
-from fastapi import FastAPI, status, Request, BackgroundTasks, HTTPException
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, status, BackgroundTasks, HTTPException
 from fastapi.responses import HTMLResponse
-from jinja2 import Template, Environment, FileSystemLoader
+from fastapi.staticfiles import StaticFiles
+from jinja2 import Environment, FileSystemLoader
 
+from app.config import PORT
 from app.scheme import *
 from app.utils import (encode_jwt, parse_session_token, parse_refresh_token, random_number, send_account_creation_mail,
                        parse_token, hash_password)
-from app.config import HOST, PORT
-import uuid
 
-api = FastAPI(
+app = FastAPI(
     title='Dinagon',
     version='0.1 alpha',
     description='Server Side Api',
     servers=[{'url': 'http://localhost:{}/'.format(PORT), 'description': 'Development Server'}],
     debug=True
 )
-api.mount('/static', StaticFiles(directory='app/static'), name='static')
+app.mount('/static', StaticFiles(directory='app/static'), name='static')
 
 env = Environment(loader=FileSystemLoader('app/static/templates'))
 
 
-@api.post('/signup', response_model=SignupResponse)
+@app.post('/signup', response_model=SignupResponse)
 async def signup(req: SignupRequest, background_tasks: BackgroundTasks):
     number = random_number()
     text = env.get_template('account_creation_mail.txt').render({'auth_number': number})
@@ -36,7 +36,7 @@ async def signup(req: SignupRequest, background_tasks: BackgroundTasks):
     return SignupResponse(token=token)
 
 
-@api.post('/signup/confirm', response_model=LoginResponse)
+@app.post('/signup/confirm', response_model=LoginResponse)
 async def signup_confirm(req: SignupConfirmRequest):
     payload = parse_token(req.token)
     if payload['number'] != req.number:
@@ -51,7 +51,7 @@ async def signup_confirm(req: SignupConfirmRequest):
     return LoginResponse(sessionToken=session_token, refreshToken=refresh_token)
 
 
-@api.post('/login', response_model=LoginResponse)
+@app.post('/login', response_model=LoginResponse)
 async def login(req: LoginRequest):
     session_token = encode_jwt({'email': req.email,
                                 'expired': (datetime.datetime.now() + datetime.timedelta(days=1)).timestamp(),
@@ -63,7 +63,7 @@ async def login(req: LoginRequest):
     return LoginResponse(sessionToken=session_token, refreshToken=refresh_token)
 
 
-@api.post('/login/refresh', response_model=LoginResponse)
+@app.post('/login/refresh', response_model=LoginResponse)
 async def login_refresh(req: RefreshRequest):
     payload = parse_refresh_token(req.refreshToken)
     session_token = encode_jwt({'email': payload['email'],
@@ -75,7 +75,7 @@ async def login_refresh(req: RefreshRequest):
     return LoginResponse(sessionToken=session_token, refreshToken=refresh_token)
 
 
-@api.get('/question', response_model=List[QuestionListItem])
+@app.get('/question', response_model=List[QuestionListItem])
 async def questions(sessionToken: str):
     payload = parse_session_token(sessionToken)
 
@@ -86,7 +86,7 @@ async def questions(sessionToken: str):
     ]
 
 
-@api.get('/question/{questionID}', response_model=Question)
+@app.get('/question/{questionID}', response_model=Question)
 async def questions(sessionToken: str, questionID: uuid.UUID):
     payload = parse_session_token(sessionToken)
     print(questionID)
@@ -108,16 +108,16 @@ async def questions(sessionToken: str, questionID: uuid.UUID):
                     answeredCorrectly=False)
 
 
-@api.post('/answer', response_model=UserAnswerRequest, status_code=status.HTTP_201_CREATED)
+@app.post('/answer', response_model=UserAnswerRequest, status_code=status.HTTP_201_CREATED)
 async def questions(sessionToken: str, req: UserAnswerRequest):
     _ = parse_session_token(sessionToken)
     print(req)
 
 
-@api.get('/openapi/yaml', response_class=HTMLResponse, include_in_schema=False)
+@app.get('/openapi/yaml', response_class=HTMLResponse, include_in_schema=False)
 async def openapi_yaml():
     import yaml
-    data = api.openapi()
+    data = app.openapi()
     for i, v in enumerate(data['servers']):
         data['servers'][i]['url'] = str(v['url'])
     yaml_data = yaml.dump(data, encoding='utf-8', allow_unicode=True, sort_keys=False).decode()

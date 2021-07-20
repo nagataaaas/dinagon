@@ -1,18 +1,19 @@
+import base64
 import datetime
+import hashlib
+import os
 import random
 import smtplib
+import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import smtplib, ssl
+from typing import Optional
+
 import jwt
 from fastapi import status, HTTPException
 
 from app.config import JWT_SECRET
 from app.secrets import MAIL
-
-import hashlib
-import base64, os
-from typing import Optional
 
 
 def encode_jwt(payload: dict) -> str:
