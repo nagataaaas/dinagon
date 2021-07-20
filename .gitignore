@@ -1,2 +1,3 @@
 .idea
 venv
+dinagon/app/secrets.py
