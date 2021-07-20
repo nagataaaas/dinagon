@@ -4,10 +4,56 @@ info:
   description: Server Side Api
   version: 0.1 alpha
 servers:
-    - url: http://localhost:8888/
-      description: Development Server
+- url: http://localhost:8888/
+  description: Development Server
 paths:
-  "/login":
+  /signup:
+    post:
+      summary: Signup
+      operationId: signup_signup_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /signup/confirm:
+    post:
+      summary: Signup Confirm
+      operationId: signup_confirm_signup_confirm_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupConfirmRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /login:
     post:
       summary: Login
       operationId: login_login_post
@@ -15,7 +61,7 @@ paths:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/LoginRequest"
+              $ref: '#/components/schemas/LoginRequest'
         required: true
       responses:
         '200':
@@ -23,14 +69,14 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/LoginResponse"
+                $ref: '#/components/schemas/LoginResponse'
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
-  "/login/refresh":
+                $ref: '#/components/schemas/HTTPValidationError'
+  /login/refresh:
     post:
       summary: Login Refresh
       operationId: login_refresh_login_refresh_post
@@ -38,7 +84,7 @@ paths:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/RefreshRequest"
+              $ref: '#/components/schemas/RefreshRequest'
         required: true
       responses:
         '200':
@@ -46,14 +92,14 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/LoginResponse"
+                $ref: '#/components/schemas/LoginResponse'
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
-  "/question":
+                $ref: '#/components/schemas/HTTPValidationError'
+  /question:
     get:
       summary: Questions
       operationId: questions_question_get
@@ -73,14 +119,14 @@ paths:
                 title: Response Questions Question Get
                 type: array
                 items:
-                  "$ref": "#/components/schemas/QuestionListItem"
+                  $ref: '#/components/schemas/QuestionListItem'
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
-  "/question/{questionID}":
+                $ref: '#/components/schemas/HTTPValidationError'
+  /question/{questionID}:
     get:
       summary: Questions
       operationId: questions_question__questionID__get
@@ -104,14 +150,14 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Question"
+                $ref: '#/components/schemas/Question'
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
-  "/answer":
+                $ref: '#/components/schemas/HTTPValidationError'
+  /answer:
     post:
       summary: Questions
       operationId: questions_answer_post
@@ -126,7 +172,7 @@ paths:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/UserAnswerRequest"
+              $ref: '#/components/schemas/UserAnswerRequest'
         required: true
       responses:
         '201':
@@ -134,13 +180,13 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/UserAnswerRequest"
+                $ref: '#/components/schemas/UserAnswerRequest'
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
+                $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
     Assertion:
@@ -157,7 +203,7 @@ components:
           title: Message
           type: string
       example:
-        assertion: "'+' in code"
+        assertion: '''+'' in code'
         message: 加算が行われていない可能性があります
     HTTPValidationError:
       title: HTTPValidationError
@@ -167,22 +213,22 @@ components:
           title: Detail
           type: array
           items:
-            "$ref": "#/components/schemas/ValidationError"
+            $ref: '#/components/schemas/ValidationError'
     LoginRequest:
       title: LoginRequest
       required:
-      - displayID
+      - email
       - password
       type: object
       properties:
-        displayID:
-          title: Displayid
+        email:
+          title: Email
           type: string
         password:
           title: Password
           type: string
       example:
-        displayID: IamTestUser0123
+        email: test@test.com
         password: x0D32SaAi#5
     LoginResponse:
       title: LoginResponse
@@ -198,8 +244,8 @@ components:
           title: Refreshtoken
           type: string
       example:
-        sessionToken: "(JWT)"
-        refreshToken: "(JWT)"
+        sessionToken: (JWT)
+        refreshToken: (JWT)
     Question:
       title: Question
       required:
@@ -225,12 +271,12 @@ components:
           title: Testcases
           type: array
           items:
-            "$ref": "#/components/schemas/TestCase"
+            $ref: '#/components/schemas/TestCase'
         assertions:
           title: Assertions
           type: array
           items:
-            "$ref": "#/components/schemas/Assertion"
+            $ref: '#/components/schemas/Assertion'
         answeredCorrectly:
           title: Answeredcorrectly
           type: boolean
@@ -248,9 +294,9 @@ components:
         - input: add(-1, 1)
           expected: '0'
         - input: add(-2, 1)
-          expected: "-1"
+          expected: '-1'
         assertions:
-        - assertion: "'+' in code"
+        - assertion: '''+'' in code'
           message: 加算が行われていない可能性があります
         - assertion: add(0, 0) === undefined
           message: 値が返却されていない可能性があります
@@ -287,7 +333,50 @@ components:
           title: Refreshtoken
           type: string
       example:
-        refreshToken: "(JWT)"
+        refreshToken: (JWT)
+    SignupConfirmRequest:
+      title: SignupConfirmRequest
+      required:
+      - token
+      - number
+      type: object
+      properties:
+        token:
+          title: Token
+          type: string
+        number:
+          title: Number
+          type: string
+      example:
+        token: (JWT)
+        number: '0123'
+    SignupRequest:
+      title: SignupRequest
+      required:
+      - email
+      - password
+      type: object
+      properties:
+        email:
+          title: Email
+          type: string
+        password:
+          title: Password
+          type: string
+      example:
+        email: test@test.com
+        password: x0D32SaAi#5
+    SignupResponse:
+      title: SignupResponse
+      required:
+      - token
+      type: object
+      properties:
+        token:
+          title: Token
+          type: string
+      example:
+        token: (JWT)
     TestCase:
       title: TestCase
       required:
