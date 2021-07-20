@@ -6,6 +6,43 @@ from typing import List
 from pydantic import BaseModel
 
 
+class SignupRequest(BaseModel):
+    email: str
+    password: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "email": "test@test.com",
+                "password": "x0D32SaAi#5"
+            }
+        }
+
+
+class SignupResponse(BaseModel):
+    token: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "token": "(JWT)"
+            }
+        }
+
+
+class SignupConfirmRequest(BaseModel):
+    token: str
+    number: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "token": "(JWT)",
+                "number": "0123"
+            }
+        }
+
+
 class LoginRequest(BaseModel):
     email: str
     password: str

@@ -1,11 +1,13 @@
 import datetime
 
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, Request, BackgroundTasks, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
+from jinja2 import Template, Environment, FileSystemLoader
 
 from app.scheme import *
-from app.utils import encode_jwt, parse_session_token, parse_refresh_token
+from app.utils import (encode_jwt, parse_session_token, parse_refresh_token, random_number, send_account_creation_mail,
+                       parse_token, hash_password)
 from app.config import HOST, PORT
 import uuid
 
@@ -17,6 +19,36 @@ api = FastAPI(
     debug=True
 )
 api.mount('/static', StaticFiles(directory='app/static'), name='static')
+
+env = Environment(loader=FileSystemLoader('app/static/templates'))
+
+
+@api.post('/signup', response_model=SignupResponse)
+async def signup(req: SignupRequest, background_tasks: BackgroundTasks):
+    number = random_number()
+    text = env.get_template('account_creation_mail.txt').render({'auth_number': number})
+    html = env.get_template('account_creation_mail.html').render({'auth_number': number})
+    background_tasks.add_task(send_account_creation_mail, req.email, text, html)
+    token = encode_jwt({'email': req.email,
+                        'password': hash_password(req.password),
+                        'number': number,
+                        'expired': (datetime.datetime.now() + datetime.timedelta(minutes=20)).timestamp()})
+    return SignupResponse(token=token)
+
+
+@api.post('/signup/confirm', response_model=LoginResponse)
+async def signup_confirm(req: SignupConfirmRequest):
+    payload = parse_token(req.token)
+    if payload['number'] != req.number:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST)
+    session_token = encode_jwt({'email': payload['email'],
+                                'expired': (datetime.datetime.now() + datetime.timedelta(days=1)).timestamp(),
+                                'type': 'session'})
+    refresh_token = encode_jwt({'email': payload['email'],
+                                'expired': (datetime.datetime.now() + datetime.timedelta(days=7)).timestamp(),
+                                'type': 'refresh'})
+
+    return LoginResponse(sessionToken=session_token, refreshToken=refresh_token)
 
 
 @api.post('/login', response_model=LoginResponse)
