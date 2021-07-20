@@ -18,6 +18,15 @@ app = FastAPI(
     servers=[{'url': 'http://localhost:{}/'.format(PORT), 'description': 'Development Server'}],
     debug=True
 )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
+
 app.mount('/static', StaticFiles(directory='app/static'), name='static')
 
 env = Environment(loader=FileSystemLoader('app/static/templates'))
