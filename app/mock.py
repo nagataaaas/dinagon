@@ -1,10 +1,13 @@
 import datetime
 
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, Request, BackgroundTasks, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+from jinja2 import Template, Environment, FileSystemLoader
 
 from app.scheme import *
-from app.utils import encode_jwt, parse_session_token, parse_refresh_token
+from app.utils import (encode_jwt, parse_session_token, parse_refresh_token, random_number, send_account_creation_mail,
+                       parse_token, hash_password)
 from app.config import HOST, PORT
 import uuid
 
@@ -17,13 +20,43 @@ api = FastAPI(
 )
 api.mount('/static', StaticFiles(directory='app/static'), name='static')
 
+env = Environment(loader=FileSystemLoader('app/static/templates'))
+
+
+@api.post('/signup', response_model=SignupResponse)
+async def signup(req: SignupRequest, background_tasks: BackgroundTasks):
+    number = random_number()
+    text = env.get_template('account_creation_mail.txt').render({'auth_number': number})
+    html = env.get_template('account_creation_mail.html').render({'auth_number': number})
+    background_tasks.add_task(send_account_creation_mail, req.email, text, html)
+    token = encode_jwt({'email': req.email,
+                        'password': hash_password(req.password),
+                        'number': number,
+                        'expired': (datetime.datetime.now() + datetime.timedelta(minutes=20)).timestamp()})
+    return SignupResponse(token=token)
+
+
+@api.post('/signup/confirm', response_model=LoginResponse)
+async def signup_confirm(req: SignupConfirmRequest):
+    payload = parse_token(req.token)
+    if payload['number'] != req.number:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST)
+    session_token = encode_jwt({'email': payload['email'],
+                                'expired': (datetime.datetime.now() + datetime.timedelta(days=1)).timestamp(),
+                                'type': 'session'})
+    refresh_token = encode_jwt({'email': payload['email'],
+                                'expired': (datetime.datetime.now() + datetime.timedelta(days=7)).timestamp(),
+                                'type': 'refresh'})
+
+    return LoginResponse(sessionToken=session_token, refreshToken=refresh_token)
+
 
 @api.post('/login', response_model=LoginResponse)
 async def login(req: LoginRequest):
-    session_token = encode_jwt({'userID': req.displayID,
+    session_token = encode_jwt({'email': req.email,
                                 'expired': (datetime.datetime.now() + datetime.timedelta(days=1)).timestamp(),
                                 'type': 'session'})
-    refresh_token = encode_jwt({'userID': req.displayID,
+    refresh_token = encode_jwt({'email': req.email,
                                 'expired': (datetime.datetime.now() + datetime.timedelta(days=7)).timestamp(),
                                 'type': 'refresh'})
 
@@ -33,10 +66,10 @@ async def login(req: LoginRequest):
 @api.post('/login/refresh', response_model=LoginResponse)
 async def login_refresh(req: RefreshRequest):
     payload = parse_refresh_token(req.refreshToken)
-    session_token = encode_jwt({'userID': payload['userID'],
+    session_token = encode_jwt({'email': payload['email'],
                                 'expired': (datetime.datetime.now() + datetime.timedelta(days=1)).timestamp(),
                                 'type': 'session'})
-    refresh_token = encode_jwt({'userID': payload['userID'],
+    refresh_token = encode_jwt({'email': payload['email'],
                                 'expired': (datetime.datetime.now() + datetime.timedelta(days=7)).timestamp(),
                                 'type': 'refresh'})
     return LoginResponse(sessionToken=session_token, refreshToken=refresh_token)
@@ -79,3 +112,15 @@ async def questions(sessionToken: str, questionID: uuid.UUID):
 async def questions(sessionToken: str, req: UserAnswerRequest):
     _ = parse_session_token(sessionToken)
     print(req)
+
+
+@api.get('/openapi/yaml', response_class=HTMLResponse, include_in_schema=False)
+async def openapi_yaml():
+    import yaml
+    data = api.openapi()
+    for i, v in enumerate(data['servers']):
+        data['servers'][i]['url'] = str(v['url'])
+    yaml_data = yaml.dump(data, encoding='utf-8', allow_unicode=True, sort_keys=False).decode()
+    return HTMLResponse(
+        '<html><head><meta charset="utf-8"/></head><body><textarea rows="100" cols="200">{}</textarea></body></html>'.format(
+            yaml_data))
