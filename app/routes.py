@@ -105,7 +105,7 @@ async def questions(sessionToken: str, session: Session = Depends(get_db)):
 
 
 @app.get('/question/{questionID}', response_model=Question)
-async def curtain_question(sessionToken: str, questionID: uuid.UUID,  session: Session = Depends(get_db)):
+async def certain_question(sessionToken: str, questionID: uuid.UUID,  session: Session = Depends(get_db)):
     payload = parse_session_token(sessionToken)
 
     user = get_user_by_id(payload['id'], session)

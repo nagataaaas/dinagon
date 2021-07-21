@@ -88,7 +88,7 @@ async def questions(sessionToken: str):
 
 
 @app.get('/question/{questionID}', response_model=Question)
-async def questions(sessionToken: str, questionID: uuid.UUID):
+async def certain_question(sessionToken: str, questionID: uuid.UUID):
     payload = parse_session_token(sessionToken)
     print(questionID)
     print(payload)
@@ -112,7 +112,7 @@ async def questions(sessionToken: str, questionID: uuid.UUID):
 
 
 @app.post('/answer', response_model=UserAnswerRequest, status_code=status.HTTP_201_CREATED)
-async def questions(req: UserAnswerRequest):
+async def answer(req: UserAnswerRequest):
     _ = parse_session_token(req.sessionToken)
     print(req)
 
