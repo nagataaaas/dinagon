@@ -3,6 +3,7 @@ import datetime
 from fastapi import FastAPI, status, BackgroundTasks, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from jinja2 import Environment, FileSystemLoader
 
 from app.config import PORT
@@ -17,6 +18,15 @@ app = FastAPI(
     servers=[{'url': 'http://localhost:{}/'.format(PORT), 'description': 'Development Server'}],
     debug=True
 )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
+
 app.mount('/static', StaticFiles(directory='app/static'), name='static')
 
 env = Environment(loader=FileSystemLoader('app/static/templates'))
@@ -25,10 +35,11 @@ env = Environment(loader=FileSystemLoader('app/static/templates'))
 @app.post('/signup', response_model=SignupResponse)
 async def signup(req: SignupRequest, background_tasks: BackgroundTasks):
     number = random_number()
+    
     text = env.get_template('account_creation_mail.txt').render({'auth_number': number})
     html = env.get_template('account_creation_mail.html').render({'auth_number': number})
     background_tasks.add_task(send_account_creation_mail, req.email, text, html)
-
+    
     token = encode_jwt({'email': req.email,
                         'password': hash_password(req.password),
                         'number': number,
@@ -67,8 +78,10 @@ async def questions(sessionToken: str):
 
     print(payload)
     return [
-        QuestionListItem(questionID=uuid.uuid4(), title='add 2', answeredCorrectly=False),
-        QuestionListItem(questionID=uuid.uuid4(), title='add 3', answeredCorrectly=True),
+        QuestionListItem(questionID=uuid.uuid4(),
+                         title='add 2', answeredCorrectly=False),
+        QuestionListItem(questionID=uuid.uuid4(),
+                         title='add 3', answeredCorrectly=True),
     ]
 
 
@@ -88,8 +101,10 @@ async def questions(sessionToken: str, questionID: uuid.UUID):
                         TestCase(input='add(-2, 1)', expected='-1')
                     ],
                     assertions=[
-                        Assertion(assertion="'+' in code", message='加算が行われていない可能性があります'),
-                        Assertion(assertion="add(0, 0) === undefined", message='値が返却されていない可能性があります')
+                        Assertion(assertion="'+' in code",
+                                  message='加算が行われていない可能性があります'),
+                        Assertion(assertion="add(0, 0) === undefined",
+                                  message='値が返却されていない可能性があります')
                     ],
                     answeredCorrectly=False)
 
