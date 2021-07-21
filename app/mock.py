@@ -1,5 +1,4 @@
 import datetime
-import uuid
 
 from fastapi import FastAPI, status, BackgroundTasks, HTTPException
 from fastapi.responses import HTMLResponse
@@ -10,14 +9,13 @@ from jinja2 import Environment, FileSystemLoader
 from app.config import PORT
 from app.scheme import *
 from app.utils import (encode_jwt, parse_session_token, parse_refresh_token, random_number, send_account_creation_mail,
-                       parse_token, hash_password)
+                       parse_token, hash_password, create_token)
 
 app = FastAPI(
     title='Dinagon',
     version='0.1 alpha',
-    description='Server Side Api',
-    servers=[
-        {'url': 'http://localhost:{}/'.format(PORT), 'description': 'Development Server'}],
+    description='Server Side Mock Api',
+    servers=[{'url': 'http://localhost:{}/'.format(PORT), 'description': 'Development Server'}],
     debug=True
 )
 
@@ -37,12 +35,11 @@ env = Environment(loader=FileSystemLoader('app/static/templates'))
 @app.post('/signup', response_model=SignupResponse)
 async def signup(req: SignupRequest, background_tasks: BackgroundTasks):
     number = random_number()
-    text = env.get_template('account_creation_mail.txt').render(
-        {'auth_number': number})
-    html = env.get_template('account_creation_mail.html').render(
-        {'auth_number': number})
-    background_tasks.add_task(
-        send_account_creation_mail, req.email, text, html)
+    
+    text = env.get_template('account_creation_mail.txt').render({'auth_number': number})
+    html = env.get_template('account_creation_mail.html').render({'auth_number': number})
+    background_tasks.add_task(send_account_creation_mail, req.email, text, html)
+    
     token = encode_jwt({'email': req.email,
                         'password': hash_password(req.password),
                         'number': number,
@@ -55,24 +52,15 @@ async def signup_confirm(req: SignupConfirmRequest):
     payload = parse_token(req.token)
     if payload['number'] != req.number:
         raise HTTPException(status.HTTP_400_BAD_REQUEST)
-    session_token = encode_jwt({'email': payload['email'],
-                                'expired': (datetime.datetime.now() + datetime.timedelta(days=1)).timestamp(),
-                                'type': 'session'})
-    refresh_token = encode_jwt({'email': payload['email'],
-                                'expired': (datetime.datetime.now() + datetime.timedelta(days=7)).timestamp(),
-                                'type': 'refresh'})
+
+    session_token, refresh_token = create_token(payload['email'])
 
     return LoginResponse(sessionToken=session_token, refreshToken=refresh_token)
 
 
 @app.post('/login', response_model=LoginResponse)
 async def login(req: LoginRequest):
-    session_token = encode_jwt({'email': req.email,
-                                'expired': (datetime.datetime.now() + datetime.timedelta(days=1)).timestamp(),
-                                'type': 'session'})
-    refresh_token = encode_jwt({'email': req.email,
-                                'expired': (datetime.datetime.now() + datetime.timedelta(days=7)).timestamp(),
-                                'type': 'refresh'})
+    session_token, refresh_token = create_token(req.email)
 
     return LoginResponse(sessionToken=session_token, refreshToken=refresh_token)
 
@@ -80,12 +68,7 @@ async def login(req: LoginRequest):
 @app.post('/login/refresh', response_model=LoginResponse)
 async def login_refresh(req: RefreshRequest):
     payload = parse_refresh_token(req.refreshToken)
-    session_token = encode_jwt({'email': payload['email'],
-                                'expired': (datetime.datetime.now() + datetime.timedelta(days=1)).timestamp(),
-                                'type': 'session'})
-    refresh_token = encode_jwt({'email': payload['email'],
-                                'expired': (datetime.datetime.now() + datetime.timedelta(days=7)).timestamp(),
-                                'type': 'refresh'})
+    session_token, refresh_token = create_token(payload['email'])
     return LoginResponse(sessionToken=session_token, refreshToken=refresh_token)
 
 
@@ -138,8 +121,6 @@ async def openapi_yaml():
     data = app.openapi()
     for i, v in enumerate(data['servers']):
         data['servers'][i]['url'] = str(v['url'])
-    yaml_data = yaml.dump(data, encoding='utf-8',
-                          allow_unicode=True, sort_keys=False).decode()
-    return HTMLResponse(
-        '<html><head><meta charset="utf-8"/></head><body><textarea rows="100" cols="200">{}</textarea></body></html>'.format(
-            yaml_data))
+    yaml_data = yaml.dump(data, encoding='utf-8', allow_unicode=True, sort_keys=False).decode()
+    return HTMLResponse('<html><head><meta charset="utf-8"/></head><body>'
+                        '<textarea rows="100" cols="200">{}</textarea></body></html>'.format(yaml_data))

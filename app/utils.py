@@ -35,6 +35,15 @@ def parse_token(jwt_value: str) -> dict:
     return payload
 
 
+def create_token(email: str) -> (str, str):
+    return (encode_jwt({'email': email,
+                        'expired': (datetime.datetime.now() + datetime.timedelta(days=1)).timestamp(),
+                        'type': 'session'}),
+            encode_jwt({'email': email,
+                        'expired': (datetime.datetime.now() + datetime.timedelta(days=7)).timestamp(),
+                        'type': 'refresh'}))
+
+
 def parse_session_token(jwt_value: str) -> dict:
     if jwt_value is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED)
