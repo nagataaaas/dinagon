@@ -12,8 +12,7 @@ from typing import Optional
 import jwt
 from fastapi import status, HTTPException
 
-from app.config import JWT_SECRET
-from app.secrets import MAIL
+from app.secrets import MAIL, JWT_SECRET
 
 
 def encode_jwt(payload: dict) -> str:
@@ -35,11 +34,11 @@ def parse_token(jwt_value: str) -> dict:
     return payload
 
 
-def create_token(email: str) -> (str, str):
-    return (encode_jwt({'email': email,
+def create_token(id_: str) -> (str, str):
+    return (encode_jwt({'id': id_,
                         'expired': (datetime.datetime.now() + datetime.timedelta(days=1)).timestamp(),
                         'type': 'session'}),
-            encode_jwt({'email': email,
+            encode_jwt({'id': id_,
                         'expired': (datetime.datetime.now() + datetime.timedelta(days=7)).timestamp(),
                         'type': 'refresh'}))
 

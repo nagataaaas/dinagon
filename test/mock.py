@@ -1,9 +1,9 @@
 import datetime
 
 from fastapi import FastAPI, status, BackgroundTasks, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
 from jinja2 import Environment, FileSystemLoader
 
 from app.config import PORT
@@ -35,13 +35,15 @@ env = Environment(loader=FileSystemLoader('app/static/templates'))
 @app.post('/signup', response_model=SignupResponse)
 async def signup(req: SignupRequest, background_tasks: BackgroundTasks):
     number = random_number()
-    
+
     text = env.get_template('account_creation_mail.txt').render({'auth_number': number})
     html = env.get_template('account_creation_mail.html').render({'auth_number': number})
     background_tasks.add_task(send_account_creation_mail, req.email, text, html)
-    
+
+    password, salt = hash_password(req.password)
     token = encode_jwt({'email': req.email,
-                        'password': hash_password(req.password),
+                        'password': password,
+                        'salt': salt,
                         'number': number,
                         'expired': (datetime.datetime.now() + datetime.timedelta(minutes=20)).timestamp()})
     return SignupResponse(token=token)
@@ -110,8 +112,8 @@ async def questions(sessionToken: str, questionID: uuid.UUID):
 
 
 @app.post('/answer', response_model=UserAnswerRequest, status_code=status.HTTP_201_CREATED)
-async def questions(sessionToken: str, req: UserAnswerRequest):
-    _ = parse_session_token(sessionToken)
+async def questions(req: UserAnswerRequest):
+    _ = parse_session_token(req.sessionToken)
     print(req)
 
 

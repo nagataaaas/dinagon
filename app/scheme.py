@@ -165,11 +165,13 @@ class Question(BaseModel):
 class UserAnswerRequest(BaseModel):
     questionID: uuid.UUID
     isCorrect: bool
+    sessionToken: str
 
     class Config:
         schema_extra = {
             "example": {
                 "questionID": '2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
-                "isCorrect": False
+                "isCorrect": False,
+                'sessionToken': '(JWT)'
             }
         }
