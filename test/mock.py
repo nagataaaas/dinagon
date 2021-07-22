@@ -1,8 +1,9 @@
 import datetime
 
-from fastapi import FastAPI, status, BackgroundTasks, HTTPException
+from fastapi import FastAPI, status, BackgroundTasks, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader
 
@@ -28,6 +29,7 @@ app.add_middleware(
 )
 
 app.mount('/static', StaticFiles(directory='app/static'), name='static')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 env = Environment(loader=FileSystemLoader('app/static/templates'))
 
@@ -61,22 +63,15 @@ async def signup_confirm(req: SignupConfirmRequest):
 
 
 @app.post('/login', response_model=LoginResponse)
-async def login(req: LoginRequest):
-    session_token, refresh_token = create_token(req.email)
+async def login(form_data: LoginRequest = Depends()):
+    session_token, refresh_token = create_token(form_data.username)
 
-    return LoginResponse(sessionToken=session_token, refreshToken=refresh_token)
-
-
-@app.post('/login/refresh', response_model=LoginResponse)
-async def login_refresh(req: RefreshRequest):
-    payload = parse_refresh_token(req.refreshToken)
-    session_token, refresh_token = create_token(payload['email'])
     return LoginResponse(sessionToken=session_token, refreshToken=refresh_token)
 
 
 @app.get('/question', response_model=List[QuestionListItem])
-async def questions(sessionToken: str):
-    payload = parse_session_token(sessionToken)
+async def questions(token: str = Depends(oauth2_scheme)):
+    payload = parse_session_token(token)
 
     print(payload)
     return [
@@ -88,8 +83,8 @@ async def questions(sessionToken: str):
 
 
 @app.get('/question/{questionID}', response_model=Question)
-async def certain_question(sessionToken: str, questionID: uuid.UUID):
-    payload = parse_session_token(sessionToken)
+async def certain_question(questionID: uuid.UUID, token: str = Depends(oauth2_scheme)):
+    payload = parse_session_token(token)
     print(questionID)
     print(payload)
 
@@ -112,8 +107,8 @@ async def certain_question(sessionToken: str, questionID: uuid.UUID):
 
 
 @app.post('/answer', response_model=UserAnswerRequest, status_code=status.HTTP_201_CREATED)
-async def answer(req: UserAnswerRequest):
-    _ = parse_session_token(req.sessionToken)
+async def answer(req: UserAnswerRequest, token: str = Depends(oauth2_scheme)):
+    _ = parse_session_token(token)
     print(req)
 
 
