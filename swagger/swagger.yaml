@@ -59,33 +59,9 @@ paths:
       operationId: login_login_post
       requestBody:
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LoginResponse'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /login/refresh:
-    post:
-      summary: Login Refresh
-      operationId: login_refresh_login_refresh_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RefreshRequest'
-        required: true
+              $ref: '#/components/schemas/Body_login_login_post'
       responses:
         '200':
           description: Successful Response
@@ -103,13 +79,6 @@ paths:
     get:
       summary: Questions
       operationId: questions_question_get
-      parameters:
-      - required: true
-        schema:
-          title: Sessiontoken
-          type: string
-        name: sessionToken
-        in: query
       responses:
         '200':
           description: Successful Response
@@ -120,12 +89,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/QuestionListItem'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - OAuth2PasswordBearer: []
   /question/{questionID}:
     get:
       summary: Certain Question
@@ -138,12 +103,6 @@ paths:
           format: uuid
         name: questionID
         in: path
-      - required: true
-        schema:
-          title: Sessiontoken
-          type: string
-        name: sessionToken
-        in: query
       responses:
         '200':
           description: Successful Response
@@ -157,6 +116,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - OAuth2PasswordBearer: []
   /answer:
     post:
       summary: Answer
@@ -180,6 +141,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - OAuth2PasswordBearer: []
 components:
   schemas:
     Assertion:
@@ -198,6 +161,23 @@ components:
       example:
         assertion: '''+'' in code'
         message: 加算が行われていない可能性があります
+    Body_login_login_post:
+      title: Body_login_login_post
+      type: object
+      properties:
+        grant_type:
+          title: Grant Type
+          pattern: password|refresh_token
+          type: string
+        username:
+          title: Username
+          type: string
+        password:
+          title: Password
+          type: string
+        refresh_token:
+          title: Refresh Token
+          type: string
     HTTPValidationError:
       title: HTTPValidationError
       type: object
@@ -207,38 +187,27 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ValidationError'
-    LoginRequest:
-      title: LoginRequest
-      required:
-      - email
-      - password
-      type: object
-      properties:
-        email:
-          title: Email
-          type: string
-        password:
-          title: Password
-          type: string
-      example:
-        email: test@test.com
-        password: x0D32SaAi#5
     LoginResponse:
       title: LoginResponse
       required:
-      - sessionToken
-      - refreshToken
+      - access_token
+      - refresh_token
       type: object
       properties:
-        sessionToken:
-          title: Sessiontoken
+        access_token:
+          title: Access Token
           type: string
-        refreshToken:
-          title: Refreshtoken
+        refresh_token:
+          title: Refresh Token
           type: string
+        token_type:
+          title: Token Type
+          type: string
+          default: bearer
       example:
-        sessionToken: (JWT)
-        refreshToken: (JWT)
+        access_token: (JWT)
+        refresh_token: (JWT)
+        token_type: bearer
     Question:
       title: Question
       required:
@@ -316,17 +285,6 @@ components:
         questionID: 2f644942-e039-4a1c-aab2-bfb8d67d5ff9
         title: add 2 value
         answeredCorrectly: false
-    RefreshRequest:
-      title: RefreshRequest
-      required:
-      - refreshToken
-      type: object
-      properties:
-        refreshToken:
-          title: Refreshtoken
-          type: string
-      example:
-        refreshToken: (JWT)
     SignupConfirmRequest:
       title: SignupConfirmRequest
       required:
@@ -391,7 +349,6 @@ components:
       required:
       - questionID
       - isCorrect
-      - sessionToken
       type: object
       properties:
         questionID:
@@ -401,13 +358,9 @@ components:
         isCorrect:
           title: Iscorrect
           type: boolean
-        sessionToken:
-          title: Sessiontoken
-          type: string
       example:
         questionID: 2f644942-e039-4a1c-aab2-bfb8d67d5ff9
         isCorrect: false
-        sessionToken: (JWT)
     ValidationError:
       title: ValidationError
       required:
@@ -427,3 +380,10 @@ components:
         type:
           title: Error Type
           type: string
+  securitySchemes:
+    OAuth2PasswordBearer:
+      type: oauth2
+      flows:
+        password:
+          scopes: {}
+          tokenUrl: login
