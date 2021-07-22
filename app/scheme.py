@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import uuid
 from typing import List
-
+from fastapi.param_functions import Form
+from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel
 
 
@@ -43,50 +44,32 @@ class SignupConfirmRequest(BaseModel):
         }
 
 
-class LoginRequest(BaseModel):
-    email: str
-    password: str
+class LoginRequest:
 
-    class Config:
-        schema_extra = {
-            "example": {
-                "email": "test@test.com",
-                "password": "x0D32SaAi#5"
-            }
-        }
-
-
-class RefreshRequest(BaseModel):
-    refreshToken: str
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "refreshToken": "(JWT)"
-            }
-        }
-
-
-class TokenBodyRequest(BaseModel):
-    sessionToken: str
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "sessionToken": "(JWT)"
-            }
-        }
+    def __init__(
+            self,
+            grant_type: str = Form(None, regex="password|refresh_token"),
+            username: str = Form(None),
+            password: str = Form(None),
+            refresh_token: str = Form(None)
+    ):
+        self.grant_type = grant_type
+        self.username = username
+        self.password = password
+        self.refresh_token = refresh_token
 
 
 class LoginResponse(BaseModel):
-    sessionToken: str
-    refreshToken: str
+    access_token: str
+    refresh_token: str
+    token_type: str = 'bearer'
 
     class Config:
         schema_extra = {
             "example": {
-                "sessionToken": "(JWT)",
-                "refreshToken": "(JWT)"
+                "access_token": "(JWT)",
+                "refresh_token": "(JWT)",
+                'token_type': 'bearer'
             }
         }
 
@@ -165,13 +148,11 @@ class Question(BaseModel):
 class UserAnswerRequest(BaseModel):
     questionID: uuid.UUID
     isCorrect: bool
-    sessionToken: str
 
     class Config:
         schema_extra = {
             "example": {
                 "questionID": '2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
-                "isCorrect": False,
-                'sessionToken': '(JWT)'
+                "isCorrect": False
             }
         }

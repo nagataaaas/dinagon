@@ -10,9 +10,13 @@ from email.mime.text import MIMEText
 from typing import Optional
 
 import jwt
-from fastapi import status, HTTPException
+from fastapi import status
+from fastapi.exceptions import HTTPException
+from fastapi.security import OAuth2PasswordBearer
 
 from app.secrets import MAIL, JWT_SECRET
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 
 
 def encode_jwt(payload: dict) -> str:
@@ -20,7 +24,12 @@ def encode_jwt(payload: dict) -> str:
 
 
 def decode_jwt(jwt_value: str) -> dict:
-    return jwt.decode(jwt_value, key=JWT_SECRET, algorithms=['HS256'])
+    try:
+        return jwt.decode(jwt_value, key=JWT_SECRET, algorithms=['HS256'])
+    except jwt.exceptions.DecodeError:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials",
+                            headers={"WWW-Authenticate": "Bearer"})
 
 
 def is_expired(jwt_value: dict) -> bool:
@@ -29,7 +38,9 @@ def is_expired(jwt_value: dict) -> bool:
 
 def parse_token(jwt_value: str) -> dict:
     if jwt_value is None:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials",
+                            headers={"WWW-Authenticate": "Bearer"})
     payload = decode_jwt(jwt_value)
     return payload
 
@@ -37,7 +48,7 @@ def parse_token(jwt_value: str) -> dict:
 def create_token(id_: str) -> (str, str):
     return (encode_jwt({'id': id_,
                         'expired': (datetime.datetime.now() + datetime.timedelta(days=1)).timestamp(),
-                        'type': 'session'}),
+                        'type': 'access'}),
             encode_jwt({'id': id_,
                         'expired': (datetime.datetime.now() + datetime.timedelta(days=7)).timestamp(),
                         'type': 'refresh'}))
@@ -45,19 +56,27 @@ def create_token(id_: str) -> (str, str):
 
 def parse_session_token(jwt_value: str) -> dict:
     if jwt_value is None:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials",
+                            headers={"WWW-Authenticate": "Bearer"})
     payload = decode_jwt(jwt_value)
-    if is_expired(payload) or payload.get('type') != 'session':
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+    if is_expired(payload) or payload.get('type') != 'access':
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials",
+                            headers={"WWW-Authenticate": "Bearer"})
     return payload
 
 
 def parse_refresh_token(jwt_value: str) -> dict:
     if jwt_value is None:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials",
+                            headers={"WWW-Authenticate": "Bearer"})
     payload = decode_jwt(jwt_value)
     if is_expired(payload) or payload.get('type') != 'refresh':
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid authentication credentials",
+                            headers={"WWW-Authenticate": "Bearer"})
     return payload
 
 
