@@ -128,8 +128,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
   /question/{questionID}:
     get:
-      summary: Questions
-      operationId: questions_question__questionID__get
+      summary: Certain Question
+      operationId: certain_question_question__questionID__get
       parameters:
       - required: true
         schema:
@@ -159,15 +159,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
   /answer:
     post:
-      summary: Questions
-      operationId: questions_answer_post
-      parameters:
-      - required: true
-        schema:
-          title: Sessiontoken
-          type: string
-        name: sessionToken
-        in: query
+      summary: Answer
+      operationId: answer_answer_post
       requestBody:
         content:
           application/json:
@@ -398,6 +391,7 @@ components:
       required:
       - questionID
       - isCorrect
+      - sessionToken
       type: object
       properties:
         questionID:
@@ -407,9 +401,13 @@ components:
         isCorrect:
           title: Iscorrect
           type: boolean
+        sessionToken:
+          title: Sessiontoken
+          type: string
       example:
         questionID: 2f644942-e039-4a1c-aab2-bfb8d67d5ff9
         isCorrect: false
+        sessionToken: (JWT)
     ValidationError:
       title: ValidationError
       required:
