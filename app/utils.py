@@ -8,13 +8,15 @@ import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Optional
-
+from email.utils import formataddr
 import jwt
 from fastapi import status
 from fastapi.exceptions import HTTPException
 from fastapi.security import OAuth2PasswordBearer
 
 from app.secrets import MAIL, JWT_SECRET
+
+from email.mime.image import MIMEImage
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 
@@ -85,20 +87,31 @@ def random_number(digit: int = 4) -> str:
 
 
 def send_account_creation_mail(to: str, text: str, html: str) -> None:
-    msg = MIMEMultipart('alternative')
-    msg['Subject'] = "【Dinagon】登録確認コード"
-    msg['From'] = MAIL.address
+    msg = MIMEMultipart('related')
+    msg['Subject'] = '【Dinagon】登録確認コード'
+    msg['From'] = formataddr(('Dinagon運営', MAIL.address))
     msg['To'] = to
+    msg.preamble = '====================================================='
 
-    part1 = MIMEText(text, 'plain')
-    part2 = MIMEText(html, 'html')
+    msg_alternative = MIMEMultipart('alternative')
+    msg.attach(msg_alternative)
 
-    msg.attach(part1)
-    msg.attach(part2)
-    server = smtplib.SMTP_SSL("smtp.gmail.com", 465,
-                              context=ssl.create_default_context())
+    part1 = MIMEText(text, 'plain', 'utf-8')
+    part2 = MIMEText(html, 'html', 'utf-8')
+
+    msg_alternative.attach(part1)
+    msg_alternative.attach(part2)
+
+    with open("app/static/images/maneki-neko.png", 'rb') as img:
+        msg_img = MIMEImage(img.read(), name='maneki_neko.png', _subtype='png')
+        msg_img.add_header('Content-ID', '<maneki_neko>')
+        msg_img.add_header('Content-Type', 'image/png')
+        msg_img.add_header('Content-Disposition', 'inline; filename=maneki_neko.png')
+    msg.attach(msg_img)
+
+    server = smtplib.SMTP_SSL(MAIL.host, MAIL.port, context=ssl.create_default_context())
     server.login(MAIL.address, MAIL.password)
-    server.send_message(msg)  # メールの送信
+    server.send_message(msg)
 
 
 def hash_password(password: str, salt: Optional[str] = None):
