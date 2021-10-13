@@ -6,4 +6,4 @@ HTML_DIR = 'app/templates'
 DATABASE_URI = 'sqlite:///database.db'
 
 HOST = '0.0.0.0'
-PORT = 8888
+PORT = int(os.environ.get('PORT', 8888))
