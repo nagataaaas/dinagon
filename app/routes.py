@@ -3,7 +3,6 @@ import datetime
 from fastapi import FastAPI, status, BackgroundTasks, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.orm import Session
@@ -20,7 +19,8 @@ app = FastAPI(
     title='Dinagon',
     version='0.1 alpha',
     description='Server Side Api',
-    servers=[{'url': 'http://localhost:{}/'.format(PORT), 'description': 'Development Server'}],
+    servers=[{'url': 'http://localhost:{}/'.format(PORT), 'description': 'Development Server'},
+             {'url': 'https://dinagon.herokuapp.com/', 'description': 'Heroku Server'}],
     debug=True
 )
 
