@@ -49,6 +49,10 @@ def get_question(user: User, question_id: uuid.UUID, session: Session) -> Tuple[
     return q, any(ans)
 
 
+def get_questions_by_id(question_ids: List[uuid.UUID], session: Session) -> List[Question]:
+    return session.query(Question).filter(Question.id.in_(question_ids)).all()
+
+
 def get_answers(user: User, session: Session) -> List[Answer]:
     answers = session.query(Answer) \
         .filter(Answer.user == user.id) \

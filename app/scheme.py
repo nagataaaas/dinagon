@@ -207,3 +207,18 @@ class UserAnswerRequest(BaseModel):
                 'failedAssertions': ['2f644942-e039-4a1c-aab2-bfb8d67d5ff9']
             }
         }
+
+
+class RecommendationResponse(BaseModel):
+    tags: List[Tag]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                'tags': [
+                    Tag(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                        name="算術理解",
+                        tutorial_link='https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Expressions_and_Operators')
+                ]
+            }
+        }

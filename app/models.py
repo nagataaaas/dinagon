@@ -161,6 +161,8 @@ class Tag(Base):
     name = Column(String, nullable=False)
     tutorial_link = Column(String, nullable=False)
 
+    def __repr__(self):
+        return f'Tag(id={self.id!r}, name={self.name!r}, tutorial_link={self.tutorial_link!r})'
 
 if __name__ == '__main__':
     create_database()

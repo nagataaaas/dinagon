@@ -9,11 +9,12 @@ from sqlalchemy.orm import Session
 
 from app.config import PORT
 from app.controller import (get_active_user_by_email, get_user_by_id, create_user,
-                            get_questions, create_answer, get_question, get_answers)
+                            get_questions, create_answer, get_question, get_answers, get_questions_by_id)
 from app.models import get_db
 from app.scheme import *
 from app.utils import (encode_jwt, parse_session_token, parse_refresh_token, random_number, send_account_creation_mail,
                        parse_token, hash_password, create_token, oauth2_scheme)
+from itertools import chain
 
 app = FastAPI(
     title='Dinagon',
@@ -141,6 +142,32 @@ async def answer(req: UserAnswerRequest, token: str = Depends(oauth2_scheme), se
         raise HTTPException(status.HTTP_400_BAD_REQUEST)
 
     create_answer(user, req.questionID, req.isCorrect, req.failedAssertions, session)
+
+
+@app.get('/recommendation', response_model=RecommendationResponse)
+async def recommendation(token: str = Depends(oauth2_scheme), session: Session = Depends(get_db)):
+    payload = parse_session_token(token)
+    user = get_user_by_id(payload['id'], session)
+    if not user:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+
+    answers = get_answers(user, session)
+    all_tags = list(chain.from_iterable([list(chain.from_iterable(a.tags for a in question.assertions)) for question in
+                                         get_questions_by_id([ans.question for ans in answers], session)]))
+    wrong_tags = list(chain.from_iterable(
+        [list(chain.from_iterable(a.tags for a in ans.failed_assertions)) for ans in answers if
+         ans.is_correct is False]))
+
+    result = []
+
+    for tag in set(all_tags):
+        wrong_ratio = wrong_tags.count(tag) / len(wrong_tags)
+        if wrong_ratio > 0:
+            tag_ratio = all_tags.count(tag) / len(all_tags)
+            result.append((-wrong_ratio / tag_ratio, tag))
+
+    result.sort()
+    return RecommendationResponse(tags=[Tag(id=t.id, name=t.name, tutorial_link=t.tutorial_link) for _, t in result])
 
 
 @app.get('/openapi/yaml', response_class=HTMLResponse, include_in_schema=False)
