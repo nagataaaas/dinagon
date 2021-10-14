@@ -2,7 +2,7 @@ import datetime
 import uuid
 from typing import Generator
 
-from sqlalchemy import Column, String, Boolean, ForeignKey, DateTime
+from sqlalchemy import Column, String, Boolean, ForeignKey, DateTime, Table
 from sqlalchemy import MetaData
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -49,6 +49,24 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
+assertion_tag_relation = Table('assertion_tag_relation', Base.metadata,
+                               Column('assertion_id', UUIDType(binary=False), ForeignKey('assertions.id'),
+                                      primary_key=True),
+                               Column('tag_id', UUIDType(binary=False), ForeignKey('tags.id'), primary_key=True)
+                               )
+question_tag_relation = Table('question_tag_relation', Base.metadata,
+                              Column('question_id', UUIDType(binary=False), ForeignKey('questions.id'),
+                                     primary_key=True),
+                              Column('tag_id', UUIDType(binary=False), ForeignKey('tags.id'), primary_key=True)
+                              )
+answer_assertion_relation = Table('answer_assertion_relation', Base.metadata,
+                                  Column('answer_id', UUIDType(binary=False), ForeignKey('answers.id'),
+                                         primary_key=True),
+                                  Column('assertion_id', UUIDType(binary=False), ForeignKey('assertions.id'),
+                                         primary_key=True)
+                                  )
+
+
 class User(Base):
     __tablename__ = 'users'
 
@@ -73,10 +91,11 @@ class Answer(Base):
     id = Column(UUIDType(binary=False), primary_key=True, default=uuid.uuid4)
 
     user = Column(UUIDType(binary=False), ForeignKey('users.id'))
-
     question = Column(UUIDType(binary=False), ForeignKey('questions.id'))
 
     is_correct = Column(Boolean, nullable=False)
+
+    failed_assertions = relationship("Assertion", secondary=answer_assertion_relation)
 
     timestamp = Column(DateTime, default=datetime.datetime.now)
 
@@ -97,6 +116,8 @@ class Question(Base):
     test_cases = relationship('TestCase', uselist=True, lazy='dynamic')
     assertions = relationship('Assertion', uselist=True, lazy='dynamic')
 
+    tags = relationship('Tag', secondary=question_tag_relation)
+
     def __repr__(self):
         return (f'Question(id={self.id!r}, title={self.title!r}, description={self.description!r}, '
                 f'test_cases={self.test_cases!r}, assertions={self.assertions!r})')
@@ -110,7 +131,7 @@ class TestCase(Base):
     input = Column(String, nullable=False)
     expected = Column(String, nullable=False)
 
-    question_id = Column('Question', ForeignKey('questions.id'))
+    question_id = Column(UUIDType(binary=False), ForeignKey('questions.id'))
 
     def __repr__(self):
         return f'TestCase(id={self.id!r}, input={self.input!r}, expected={self.expected!r})'
@@ -124,11 +145,25 @@ class Assertion(Base):
     assertion = Column(String, nullable=False)
     message = Column(String, nullable=False)
 
-    question_id = Column('Question', ForeignKey('questions.id'))
+    tags = relationship("Tag", secondary=assertion_tag_relation)
+
+    answer_id = Column(UUIDType(binary=False), ForeignKey('answers.id'))
+    question_id = Column(UUIDType(binary=False), ForeignKey('questions.id'))
 
     def __repr__(self):
         return f'Assertion(id={self.id!r}, assertion={self.assertion!r}, message={self.message!r})'
 
+
+class Tag(Base):
+    __tablename__ = 'tags'
+
+    id = Column(UUIDType(binary=False), primary_key=True, default=uuid.uuid4)
+
+    name = Column(String, nullable=False)
+    tutorial_link = Column(String, nullable=False)
+
+    def __repr__(self):
+        return f'Tag(id={self.id!r}, name={self.name!r}, tutorial_link={self.tutorial_link!r})'
 
 if __name__ == '__main__':
     create_database()

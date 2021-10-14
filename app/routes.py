@@ -14,6 +14,7 @@ from app.models import get_db
 from app.scheme import *
 from app.utils import (encode_jwt, parse_session_token, parse_refresh_token, random_number, send_account_creation_mail,
                        parse_token, hash_password, create_token, oauth2_scheme)
+from itertools import chain
 
 app = FastAPI(
     title='Dinagon',
@@ -97,8 +98,9 @@ async def questions(token: str = Depends(oauth2_scheme), session: Session = Depe
     if not user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED)
 
-    return [QuestionListItem(questionID=q.id, title=q.title, answeredCorrectly=answered_correctly) for
-            q, answered_correctly in get_questions(user, session)]
+    return [QuestionListItem(questionID=q.id, title=q.title, answeredCorrectly=answered_correctly,
+                             tags=[Tag(id=tag.id, name=tag.name, tutorial_link=tag.tutorial_link) for tag in q.tags])
+            for q, answered_correctly in get_questions(user, session)]
 
 
 @app.get('/question/{questionID}', response_model=Question)
@@ -118,11 +120,15 @@ async def certain_question(questionID: uuid.UUID, token: str = Depends(oauth2_sc
                         for t in q.test_cases
                     ],
                     assertions=[
-                        Assertion(assertion=a.assertion,
-                                  message=a.message)
+                        Assertion(id=a.id,
+                                  assertion=a.assertion,
+                                  message=a.message,
+                                  tags=[Tag(id=tag.id, name=tag.name, tutorial_link=tag.tutorial_link) for tag in
+                                        a.tags])
                         for a in q.assertions
                     ],
                     answeredCorrectly=answered_correctly,
+                    tags=[Tag(id=tag.id, name=tag.name, tutorial_link=tag.tutorial_link) for tag in q.tags],
                     defaultCode=q.default_code)
 
 
@@ -133,8 +139,36 @@ async def answer(req: UserAnswerRequest, token: str = Depends(oauth2_scheme), se
     user = get_user_by_id(payload['id'], session)
     if not user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+    if req.isCorrect == (len(req.failedAssertions) > 0):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST)
 
-    create_answer(user, req.questionID, req.isCorrect, session)
+    create_answer(user, req.questionID, req.isCorrect, req.failedAssertions, session)
+
+
+@app.get('/recommendation', response_model=RecommendationResponse)
+async def recommendation(token: str = Depends(oauth2_scheme), session: Session = Depends(get_db)):
+    payload = parse_session_token(token)
+    user = get_user_by_id(payload['id'], session)
+    if not user:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+
+    answers = get_answers(user, session)
+    all_tags = list(chain.from_iterable([list(chain.from_iterable(a.tags for a in question.assertions)) for question in
+                                         get_questions_by_id([ans.question for ans in answers], session)]))
+    wrong_tags = list(chain.from_iterable(
+        [list(chain.from_iterable(a.tags for a in ans.failed_assertions)) for ans in answers if
+         ans.is_correct is False]))
+
+    result = []
+
+    for tag in set(all_tags):
+        wrong_ratio = wrong_tags.count(tag) / len(wrong_tags)
+        if wrong_ratio > 0:
+            tag_ratio = all_tags.count(tag) / len(all_tags)
+            result.append((-wrong_ratio / tag_ratio, tag))
+
+    result.sort()
+    return RecommendationResponse(tags=[Tag(id=t.id, name=t.name, tutorial_link=t.tutorial_link) for _, t in result])
 
 
 @app.get('/openapi/yaml', response_class=HTMLResponse, include_in_schema=False)
