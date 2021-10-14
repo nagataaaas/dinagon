@@ -97,8 +97,9 @@ async def questions(token: str = Depends(oauth2_scheme), session: Session = Depe
     if not user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED)
 
-    return [QuestionListItem(questionID=q.id, title=q.title, answeredCorrectly=answered_correctly) for
-            q, answered_correctly in get_questions(user, session)]
+    return [QuestionListItem(questionID=q.id, title=q.title, answeredCorrectly=answered_correctly,
+                             tags=[Tag(id=tag.id, name=tag.name, tutorial_link=tag.tutorial_link) for tag in q.tags])
+            for q, answered_correctly in get_questions(user, session)]
 
 
 @app.get('/question/{questionID}', response_model=Question)
@@ -118,11 +119,15 @@ async def certain_question(questionID: uuid.UUID, token: str = Depends(oauth2_sc
                         for t in q.test_cases
                     ],
                     assertions=[
-                        Assertion(assertion=a.assertion,
-                                  message=a.message)
+                        Assertion(id=a.id,
+                                  assertion=a.assertion,
+                                  message=a.message,
+                                  tags=[Tag(id=tag.id, name=tag.name, tutorial_link=tag.tutorial_link) for tag in
+                                        a.tags])
                         for a in q.assertions
                     ],
-                    answeredCorrectly=answered_correctly)
+                    answeredCorrectly=answered_correctly,
+                    tags=[Tag(id=tag.id, name=tag.name, tutorial_link=tag.tutorial_link) for tag in q.tags])
 
 
 @app.post('/answer', response_model=UserAnswerRequest, status_code=status.HTTP_201_CREATED)
@@ -132,8 +137,10 @@ async def answer(req: UserAnswerRequest, token: str = Depends(oauth2_scheme), se
     user = get_user_by_id(payload['id'], session)
     if not user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+    if req.isCorrect == (len(req.failedAssertions) > 0):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST)
 
-    create_answer(user, req.questionID, req.isCorrect, session)
+    create_answer(user, req.questionID, req.isCorrect, req.failedAssertions, session)
 
 
 @app.get('/openapi/yaml', response_class=HTMLResponse, include_in_schema=False)
