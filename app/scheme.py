@@ -197,7 +197,7 @@ class Question(BaseModel):
 class UserAnswerRequest(BaseModel):
     questionID: uuid.UUID
     isCorrect: bool
-    failedAssertions: List[str]
+    failedAssertions: List[uuid.UUID]
 
     class Config:
         schema_extra = {

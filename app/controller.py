@@ -65,13 +65,12 @@ def get_answers(user: User, session: Session) -> List[Answer]:
     return q
 
 
-def create_answer(user: User, question_id: uuid.UUID, is_correct: bool, failed_assertions: List[str], session: Session):
+def create_answer(user: User, question_id: uuid.UUID, is_correct: bool, failed_assertions: List[uuid.UUID], session: Session):
     question = session.query(Question).get(question_id)
     if not question:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
-    assertions = session.query(Assertion).filter(Assertion.id.in_([uuid.UUID(a) for a in failed_assertions])).all()
+    assertions = session.query(Assertion).filter(Assertion.id.in_([a for a in failed_assertions])).all()
     if len(assertions) != len(failed_assertions):
-        print('wo!')
         raise HTTPException(status.HTTP_400_BAD_REQUEST)
 
     answer = Answer(user=user.id, question=question_id, is_correct=is_correct, failed_assertions=assertions)
