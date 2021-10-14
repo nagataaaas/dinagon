@@ -76,9 +76,11 @@ async def questions(token: str = Depends(oauth2_scheme)):
     print(payload)
     return [
         QuestionListItem(questionID=uuid.uuid4(),
-                         title='add 2', answeredCorrectly=False),
+                         title='add 2', answeredCorrectly=False,
+                         tags=[Tag(id=uuid.uuid4(), name='算術処理', tutorial_link='http://link.com')]),
         QuestionListItem(questionID=uuid.uuid4(),
-                         title='add 3', answeredCorrectly=True),
+                         title='add 3', answeredCorrectly=True,
+                         tags=[Tag(id=uuid.uuid4(), name='アルゴリズム', tutorial_link='http://link.com')]),
     ]
 
 
@@ -98,10 +100,12 @@ async def certain_question(questionID: uuid.UUID, token: str = Depends(oauth2_sc
                         TestCase(input='add(-2, 1)', expected='-1')
                     ],
                     assertions=[
-                        Assertion(assertion="'+' in code",
-                                  message='加算が行われていない可能性があります'),
-                        Assertion(assertion="add(0, 0) === undefined",
-                                  message='値が返却されていない可能性があります')
+                        Assertion(id=uuid.uuid4(), assertion="'+' in code",
+                                  message='加算が行われていない可能性があります',
+                                  tags=[Tag(id=uuid.uuid4(), name='算術処理', tutorial_link='http://link.com')]),
+                        Assertion(id=uuid.uuid4(), assertion="add(0, 0) === undefined",
+                                  message='値が返却されていない可能性があります',
+                                  tags=[Tag(id=uuid.uuid4(), name='アルゴリズム', tutorial_link='http://link.com')])
                     ],
                     answeredCorrectly=False)
 
@@ -110,6 +114,14 @@ async def certain_question(questionID: uuid.UUID, token: str = Depends(oauth2_sc
 async def answer(req: UserAnswerRequest, token: str = Depends(oauth2_scheme)):
     _ = parse_session_token(token)
     print(req)
+
+
+@app.get('/recommendation', response_model=RecommendationResponse)
+async def recommendation(token: str = Depends(oauth2_scheme)):
+    payload = parse_session_token(token)
+    print(payload)
+
+    return RecommendationResponse(tags=[Tag(id=uuid.uuid4(), name='アルゴリズム', tutorial_link='http://link.com')])
 
 
 @app.get('/openapi/yaml', response_class=HTMLResponse, include_in_schema=False)
