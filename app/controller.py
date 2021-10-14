@@ -49,6 +49,18 @@ def get_question(user: User, question_id: uuid.UUID, session: Session) -> Tuple[
     return q, any(ans)
 
 
+def get_answers(user: User, session: Session) -> List[Answer]:
+    answers = session.query(Answer) \
+        .filter(Answer.user == user.id) \
+        .order_by(desc(Answer.is_correct)) \
+        .subquery()
+    q = session.query() \
+        .add_entity(Answer, alias=answers).group_by(answers.c.question) \
+        .all()
+
+    return q
+
+
 def create_answer(user: User, question_id: uuid.UUID, is_correct: bool, failed_assertions: List[str], session: Session):
     question = session.query(Question).get(question_id)
     if not question:

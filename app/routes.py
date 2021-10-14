@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.config import PORT
 from app.controller import (get_active_user_by_email, get_user_by_id, create_user,
-                            get_questions, create_answer, get_question)
+                            get_questions, create_answer, get_question, get_answers)
 from app.models import get_db
 from app.scheme import *
 from app.utils import (encode_jwt, parse_session_token, parse_refresh_token, random_number, send_account_creation_mail,
