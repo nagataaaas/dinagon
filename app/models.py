@@ -92,6 +92,7 @@ class Question(Base):
 
     title = Column(String, nullable=False)
     description = Column(String, nullable=False)
+    default_code = Column(String, nullable=False)
 
     test_cases = relationship('TestCase', uselist=True, lazy='dynamic')
     assertions = relationship('Assertion', uselist=True, lazy='dynamic')

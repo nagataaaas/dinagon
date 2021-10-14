@@ -96,7 +96,7 @@ class TestCase(BaseModel):
     class Config:
         schema_extra = {
             "example": {
-                "input": "add(1, 2)",
+                "input": "(1, 2)",
                 "expected": "3"
             }
         }
@@ -122,6 +122,7 @@ class Question(BaseModel):
     testCases: List[TestCase]
     assertions: List[Assertion]
     answeredCorrectly: bool
+    defaultCode: str
 
     class Config:
         schema_extra = {
@@ -130,17 +131,18 @@ class Question(BaseModel):
                 "title": "add 2 value",
                 "description": "2つの値が与えられると、それらの値を足し合わせた数字を返す関数 `add` を定義してください。",
                 "testCases": [
-                    TestCase(input='add(0, 0)', expected='0'),
-                    TestCase(input='add(1, 1)', expected='2'),
-                    TestCase(input='add(1.0, 1.0)', expected='2.0'),
-                    TestCase(input='add(-1, 1)', expected='0'),
-                    TestCase(input='add(-2, 1)', expected='-1')
+                    TestCase(input='(0, 0)', expected='0'),
+                    TestCase(input='(1, 1)', expected='2'),
+                    TestCase(input='(1.0, 1.0)', expected='2.0'),
+                    TestCase(input='(-1, 1)', expected='0'),
+                    TestCase(input='(-2, 1)', expected='-1')
                 ],
                 "assertions": [
                     Assertion(assertion="'+' in code", message='加算が行われていない可能性があります'),
                     Assertion(assertion="add(0, 0) === undefined", message='値が返却されていない可能性があります')
                 ],
                 "answeredCorrectly": False,
+                "defaultCode": "function add2(first, second) {\n    // your code here\n\n}"
             }
         }
 

@@ -10,11 +10,11 @@ def load():
     user2 = User(email_address='test2@test.com', password_hash=password2, salt=salt2)
 
     testcase1 = [
-        TestCase(id=None, input='add(0, 0)', expected='0'),
-        TestCase(id=None, input='add(1, 1)', expected='2'),
-        TestCase(id=None, input='add(1.0, 1.0)', expected='2.0'),
-        TestCase(id=None, input='add(-1, 1)', expected='0'),
-        TestCase(id=None, input='add(-2, 1)', expected='-1')
+        TestCase(id=None, input='(0, 0)', expected='0'),
+        TestCase(id=None, input='(1, 1)', expected='2'),
+        TestCase(id=None, input='(1.0, 1.0)', expected='2.0'),
+        TestCase(id=None, input='(-1, 1)', expected='0'),
+        TestCase(id=None, input='(-2, 1)', expected='-1')
     ]
     assertions1 = [
         Assertion(assertion="'+' in code", message="加算が行われていない可能性があります"),
@@ -22,11 +22,11 @@ def load():
     ]
 
     testcase2 = [
-        TestCase(id=None, input='add(0, 0, 0)', expected='0'),
-        TestCase(id=None, input='add(1, 1, 1)', expected='3'),
-        TestCase(id=None, input='add(1.0, 1.0, 0.5)', expected='2.5'),
-        TestCase(id=None, input='add(-1, 1, 0)', expected='0'),
-        TestCase(id=None, input='add(-2, 1, -1)', expected='-2')
+        TestCase(id=None, input='(0, 0, 0)', expected='0'),
+        TestCase(id=None, input='(1, 1, 1)', expected='3'),
+        TestCase(id=None, input='(1.0, 1.0, 0.5)', expected='2.5'),
+        TestCase(id=None, input='(-1, 1, 0)', expected='0'),
+        TestCase(id=None, input='(-2, 1, -1)', expected='-2')
     ]
     assertions2 = [
         Assertion(assertion="'+' in code", message="加算が行われていない可能性があります"),

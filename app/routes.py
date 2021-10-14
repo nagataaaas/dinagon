@@ -122,7 +122,8 @@ async def certain_question(questionID: uuid.UUID, token: str = Depends(oauth2_sc
                                   message=a.message)
                         for a in q.assertions
                     ],
-                    answeredCorrectly=answered_correctly)
+                    answeredCorrectly=answered_correctly,
+                    defaultCode=q.default_code)
 
 
 @app.post('/answer', response_model=UserAnswerRequest, status_code=status.HTTP_201_CREATED)
