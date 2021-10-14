@@ -191,7 +191,7 @@ class Question(BaseModel):
                         name="関数理解",
                         tutorial_link='https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Functions')
                 ],
-                "defaultCode": "function add2(first, second) {\n    // your code here\n\n}"
+                "defaultCode": "function add(first, second) {\n    // your code here\n\n}"
             }
         }
 

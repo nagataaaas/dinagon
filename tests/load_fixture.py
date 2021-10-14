@@ -43,10 +43,12 @@ def load():
 
     question1 = Question(title='add 2 values',
                          description='2つの値が与えられると、それらの値を足し合わせた数字を返す関数 `add` を定義してください。',
-                         test_cases=testcase1, assertions=assertions1, tags=[tag_math, tag_func])
+                         test_cases=testcase1, assertions=assertions1, tags=[tag_math, tag_func],
+                         default_code="function add(first, second) {\n    // your code here\n\n}")
     question2 = Question(title='add 3 values',
                          description='3つの値が与えられると、それらの値を足し合わせた数字を返す関数 `add` を定義してください。',
-                         test_cases=testcase2, assertions=assertions2, tags=[tag_math, tag_func])
+                         test_cases=testcase2, assertions=assertions2, tags=[tag_math, tag_func],
+                         default_code="function add(first, second, third) {\n    // your code here\n\n}")
 
     session.add_all([user1, user2, *testcase1, *testcase2, *assertions1, *assertions2,
                      question1, question2])
