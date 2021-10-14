@@ -74,17 +74,41 @@ class LoginResponse(BaseModel):
         }
 
 
+class Tag(BaseModel):
+    id: uuid.UUID
+    name: str
+    tutorial_link: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "id": '2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                "name": "算術理解",
+                'tutorial_link': 'https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Expressions_and_Operators'
+            }
+        }
+
+
 class QuestionListItem(BaseModel):
     questionID: uuid.UUID
     title: str
     answeredCorrectly: bool
+    tags: List[Tag]
 
     class Config:
         schema_extra = {
             "example": {
                 "questionID": '2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
                 "title": "add 2 value",
-                "answeredCorrectly": False
+                "answeredCorrectly": False,
+                "tags": [
+                    Tag(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                        name="算術理解",
+                        tutorial_link='https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Expressions_and_Operators'),
+                    Tag(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                        name="関数理解",
+                        tutorial_link='https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Functions')
+                ]
             }
         }
 
@@ -103,14 +127,22 @@ class TestCase(BaseModel):
 
 
 class Assertion(BaseModel):
+    id: uuid.UUID
     assertion: str
     message: str
+    tags: List[Tag]
 
     class Config:
         schema_extra = {
             "example": {
+                "id": '2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
                 "assertion": "'+' in code",
-                "message": "加算が行われていない可能性があります"
+                "message": "加算が行われていない可能性があります",
+                'tags': [
+                    Tag(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                        name="算術理解",
+                        tutorial_link='https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Expressions_and_Operators')
+                ]
             }
         }
 
@@ -122,6 +154,7 @@ class Question(BaseModel):
     testCases: List[TestCase]
     assertions: List[Assertion]
     answeredCorrectly: bool
+    tags: List[Tag]
 
     class Config:
         schema_extra = {
@@ -137,10 +170,26 @@ class Question(BaseModel):
                     TestCase(input='add(-2, 1)', expected='-1')
                 ],
                 "assertions": [
-                    Assertion(assertion="'+' in code", message='加算が行われていない可能性があります'),
-                    Assertion(assertion="add(0, 0) === undefined", message='値が返却されていない可能性があります')
+                    Assertion(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9', assertion="'+' in code",
+                              message='加算が行われていない可能性があります',
+                              tags=[Tag(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                                        name="算術理解",
+                                        tutorial_link='https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Expressions_and_Operators')]),
+                    Assertion(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9', assertion="add(0, 0) === undefined",
+                              message='値が返却されていない可能性があります',
+                              tags=[Tag(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                                        name="関数理解",
+                                        tutorial_link='https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Functions')])
                 ],
                 "answeredCorrectly": False,
+                "tags": [
+                    Tag(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                        name="算術理解",
+                        tutorial_link='https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Expressions_and_Operators'),
+                    Tag(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                        name="関数理解",
+                        tutorial_link='https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Functions')
+                ]
             }
         }
 
@@ -148,11 +197,28 @@ class Question(BaseModel):
 class UserAnswerRequest(BaseModel):
     questionID: uuid.UUID
     isCorrect: bool
+    failedAssertions: List[uuid.UUID]
 
     class Config:
         schema_extra = {
             "example": {
                 "questionID": '2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
-                "isCorrect": False
+                "isCorrect": False,
+                'failedAssertions': ['2f644942-e039-4a1c-aab2-bfb8d67d5ff9']
+            }
+        }
+
+
+class RecommendationResponse(BaseModel):
+    tags: List[Tag]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                'tags': [
+                    Tag(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                        name="算術理解",
+                        tutorial_link='https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Expressions_and_Operators')
+                ]
             }
         }
