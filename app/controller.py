@@ -2,6 +2,7 @@ from typing import Optional, List, Tuple
 
 from fastapi import HTTPException, status
 from sqlalchemy import desc
+from sqlalchemy.sql import func
 
 from app.models import *
 
@@ -22,23 +23,20 @@ def create_user(password_hash: str, salt: str, email_address: str, session: Sess
 
 
 def get_questions(user: User, session: Session) -> List[Tuple[Question, bool]]:
-    answered_correctly = session.query(Answer) \
+    answered_correctly = session.query(func.max(Answer.is_correct), Answer.question) \
         .filter(Answer.user == user.id) \
-        .order_by(desc(Answer.is_correct)) \
-        .distinct(Answer.question) \
         .group_by(Answer.question) \
         .subquery()
     questions = session.query(Question, answered_correctly) \
         .outerjoin(answered_correctly, answered_correctly.c.question == Question.id) \
         .all()
-    return [(q, any(ans)) for q, *ans in questions]
+
+    return [(q, ans[0]) for q, *ans in questions]
 
 
 def get_question(user: User, question_id: uuid.UUID, session: Session) -> Tuple[Question, bool]:
-    answered_correctly = session.query(Answer) \
+    answered_correctly = session.query(func.max(Answer.is_correct), Answer.question) \
         .filter(Answer.user == user.id) \
-        .order_by(desc(Answer.is_correct)) \
-        .distinct(Answer.question) \
         .group_by(Answer.question) \
         .subquery()
     q, *ans = session.query(Question, answered_correctly) \
@@ -46,7 +44,7 @@ def get_question(user: User, question_id: uuid.UUID, session: Session) -> Tuple[
         .filter(Question.id == question_id) \
         .one_or_none()
 
-    return q, any(ans)
+    return q, ans[0]
 
 
 def get_questions_by_id(question_ids: List[uuid.UUID], session: Session) -> List[Question]:
@@ -65,7 +63,8 @@ def get_answers(user: User, session: Session) -> List[Answer]:
     return q
 
 
-def create_answer(user: User, question_id: uuid.UUID, is_correct: bool, failed_assertions: List[uuid.UUID], session: Session):
+def create_answer(user: User, question_id: uuid.UUID, is_correct: bool, failed_assertions: List[uuid.UUID],
+                  session: Session):
     question = session.query(Question).get(question_id)
     if not question:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
