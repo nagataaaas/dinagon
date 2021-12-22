@@ -139,8 +139,6 @@ async def answer(req: UserAnswerRequest, token: str = Depends(oauth2_scheme), se
     user = get_user_by_id(payload['id'], session)
     if not user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED)
-    if req.isCorrect == (len(req.failedAssertions) > 0):
-        raise HTTPException(status.HTTP_400_BAD_REQUEST)
 
     create_answer(user, req.questionID, req.isCorrect, req.failedAssertions, session)
 
