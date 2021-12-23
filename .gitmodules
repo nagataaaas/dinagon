@@ -1,0 +1,3 @@
+[submodule "shonagon"]
+	path = shonagon
+	url = https://github.com/nagataaaas/shonagon.git
