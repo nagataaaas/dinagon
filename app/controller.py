@@ -31,7 +31,7 @@ def get_questions(user: User, session: Session) -> List[Tuple[Question, bool]]:
         .outerjoin(answered_correctly, answered_correctly.c.question == Question.id) \
         .all()
 
-    return [(q, ans[0]) for q, *ans in questions]
+    return [(q, ans[0] is True) for q, *ans in questions]
 
 
 def get_question(user: User, question_id: uuid.UUID, session: Session) -> Tuple[Question, bool]:
@@ -44,7 +44,7 @@ def get_question(user: User, question_id: uuid.UUID, session: Session) -> Tuple[
         .filter(Question.id == question_id) \
         .one_or_none()
 
-    return q, ans[0]
+    return q, ans[0] is True
 
 
 def get_questions_by_id(question_ids: List[uuid.UUID], session: Session) -> List[Question]:
