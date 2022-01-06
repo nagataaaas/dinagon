@@ -2,7 +2,7 @@ import datetime
 import uuid
 from typing import Generator
 
-from sqlalchemy import Column, String, Boolean, ForeignKey, DateTime, Table
+from sqlalchemy import Column, Boolean, ForeignKey, DateTime, Table, Text
 from sqlalchemy import MetaData
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -11,14 +11,12 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy_utils import UUIDType
 
 import app.config
-import app.utils
 
 meta = MetaData()
 
 engine = create_engine(
     app.config.DATABASE_URI,
-    encoding='utf-8',
-    connect_args={'check_same_thread': False}
+    encoding='utf-8'
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -72,17 +70,8 @@ class User(Base):
 
     id = Column(UUIDType(binary=False), primary_key=True, default=uuid.uuid4)
 
-    email_address = Column(String, nullable=False, unique=True, index=True)
-    password_hash = Column(String, nullable=False)
-    salt = Column(String, nullable=False)
-
-    last_action = Column(DateTime, default=datetime.datetime.now)
-    is_active = Column(Boolean, default=True)
-
     def __repr__(self):
-        return (f'Users(id={self.id!r}, email_address={self.email_address!r}, '
-                f'password_hash={self.password_hash!r}, salt={self.salt!r}, last_action={self.last_action!r}, '
-                f'is_active={self.is_active})')
+        return f'Users(id={self.id!r})'
 
 
 class Answer(Base):
@@ -97,6 +86,8 @@ class Answer(Base):
 
     failed_assertions = relationship("Assertion", secondary=answer_assertion_relation)
 
+    use_assertions = Column(Boolean, nullable=False)
+
     timestamp = Column(DateTime, default=datetime.datetime.now)
 
     def __repr__(self):
@@ -109,9 +100,9 @@ class Question(Base):
 
     id = Column(UUIDType(binary=False), primary_key=True, default=uuid.uuid4)
 
-    title = Column(String, nullable=False)
-    description = Column(String, nullable=False)
-    default_code = Column(String, nullable=False)
+    title = Column(Text, nullable=False)
+    description = Column(Text, nullable=False)
+    default_code = Column(Text, nullable=False)
 
     test_cases = relationship('TestCase', uselist=True, lazy='dynamic')
     assertions = relationship('Assertion', uselist=True, lazy='dynamic')
@@ -128,8 +119,8 @@ class TestCase(Base):
 
     id = Column(UUIDType(binary=False), primary_key=True, default=uuid.uuid4)
 
-    input = Column(String, nullable=False)
-    expected = Column(String, nullable=False)
+    input = Column(Text, nullable=False)
+    expected = Column(Text, nullable=False)
 
     question_id = Column(UUIDType(binary=False), ForeignKey('questions.id'))
 
@@ -142,8 +133,8 @@ class Assertion(Base):
 
     id = Column(UUIDType(binary=False), primary_key=True, default=uuid.uuid4)
 
-    assertion = Column(String, nullable=False)
-    message = Column(String, nullable=False)
+    assertion = Column(Text, nullable=False)
+    message = Column(Text, nullable=False)
 
     tags = relationship("Tag", secondary=assertion_tag_relation)
 
@@ -159,11 +150,12 @@ class Tag(Base):
 
     id = Column(UUIDType(binary=False), primary_key=True, default=uuid.uuid4)
 
-    name = Column(String, nullable=False)
-    tutorial_link = Column(String, nullable=False)
+    name = Column(Text, nullable=False)
+    tutorial_link = Column(Text, nullable=False)
 
     def __repr__(self):
         return f'Tag(id={self.id!r}, name={self.name!r}, tutorial_link={self.tutorial_link!r})'
+
 
 if __name__ == '__main__':
     create_database()
