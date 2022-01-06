@@ -7,16 +7,12 @@ from sqlalchemy.sql import func
 from app.models import *
 
 
-def get_active_user_by_email(email_address: str, session: Session) -> Optional[User]:
-    return session.query(User).filter(User.email_address == email_address, User.is_active == True).one_or_none()
-
-
 def get_user_by_id(id_: str, session: Session) -> Optional[User]:
     return session.query(User).get(uuid.UUID(id_))
 
 
-def create_user(password_hash: str, salt: str, email_address: str, session: Session) -> User:
-    user = User(email_address=email_address, password_hash=password_hash, salt=salt)
+def create_user(session: Session) -> User:
+    user = User()
     session.add(user)
     session.commit()
     return user
@@ -64,7 +60,7 @@ def get_answers(user: User, session: Session) -> List[Answer]:
 
 
 def create_answer(user: User, question_id: uuid.UUID, is_correct: bool, failed_assertions: List[uuid.UUID],
-                  session: Session):
+                  is_assertion_used: bool, session: Session):
     question = session.query(Question).get(question_id)
     if not question:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
@@ -72,7 +68,8 @@ def create_answer(user: User, question_id: uuid.UUID, is_correct: bool, failed_a
     if len(assertions) != len(failed_assertions):
         raise HTTPException(status.HTTP_400_BAD_REQUEST)
 
-    answer = Answer(user=user.id, question=question_id, is_correct=is_correct, failed_assertions=assertions)
+    answer = Answer(user=user.id, question=question_id, is_correct=is_correct, failed_assertions=assertions,
+                    use_assertions=is_assertion_used)
 
     session.add(answer)
     session.commit()

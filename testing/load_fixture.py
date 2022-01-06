@@ -1,17 +1,9 @@
 from app.models import *
-from app.utils import hash_password
 import glob
 import json
-import random
 
 
 def load():
-    password1, salt1 = hash_password('test1')
-    user1 = User(email_address='test1@test.com', password_hash=password1, salt=salt1)
-
-    password2, salt2 = hash_password('test2')
-    user2 = User(email_address='test2@test.com', password_hash=password2, salt=salt2)
-
     session = SessionLocal()
 
     tags = [
@@ -33,7 +25,6 @@ def load():
     session.add_all(tags)
     session.commit()
     tag_dict = {tag.name: tag for tag in tags}
-    session.add_all([user1, user2])
 
     for file in glob.glob('./shonagon/assertions/*'):
         with open(file, 'r', encoding='utf-8') as f:
@@ -50,15 +41,7 @@ def load():
                             default_code=data['defaultCode'])
 
         session.add_all([*testcases, *assertions, question])
-        session.commit()
 
-        for user in [user1, user2]:
-            is_correct = random.choice([True, False])
-            if is_correct:
-                wrong = []
-            elif assertions:
-                wrong = random.sample(assertions, random.randint(1, len(assertions)))
-            session.add(Answer(user=user.id, question=question.id, is_correct=False, failed_assertions=wrong))
     session.commit()
     session.close()
 

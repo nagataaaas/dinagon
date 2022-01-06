@@ -2,14 +2,14 @@ import datetime
 import uuid
 from typing import Generator
 
-from sqlalchemy import Column, Boolean, ForeignKey, DateTime, Table, Text
+from sqlalchemy import Column, Boolean, ForeignKey, DateTime, Table, Text, Integer
 from sqlalchemy import MetaData
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.orm.session import Session
 from sqlalchemy_utils import UUIDType
-
+import traceback
 import app.config
 
 meta = MetaData()
@@ -25,14 +25,7 @@ Base = declarative_base()
 
 
 def clear_database():
-    session = SessionLocal()
-    meta_ = Base.metadata
-    for table in reversed(meta_.sorted_tables):
-        try:
-            session.execute(table.delete())
-        except:
-            pass
-    session.commit()
+    Base.metadata.drop_all(engine)
 
 
 def create_database():
@@ -106,6 +99,8 @@ class Question(Base):
 
     test_cases = relationship('TestCase', uselist=True, lazy='dynamic')
     assertions = relationship('Assertion', uselist=True, lazy='dynamic')
+
+    level = Column(Integer, nullable=False)
 
     tags = relationship('Tag', secondary=question_tag_relation)
 

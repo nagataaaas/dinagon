@@ -36,7 +36,7 @@ async def questions(response: Response, dinagon_user_token: Optional[str] = Cook
         user = create_user(session)
         response.set_cookie(key='dinagon_user_token', value=user.id)
 
-    return [QuestionListItem(questionID=q.id, title=q.title, answeredCorrectly=answered_correctly,
+    return [QuestionListItem(questionID=q.id, title=q.title, answeredCorrectly=answered_correctly, level=q.level,
                              tags=[Tag(id=tag.id, name=tag.name, tutorial_link=tag.tutorial_link) for tag in q.tags])
             for q, answered_correctly in get_questions(user, session)]
 
@@ -65,6 +65,7 @@ async def certain_question(questionID: uuid.UUID, dinagon_user_token: str = Cook
                     ],
                     answeredCorrectly=answered_correctly,
                     tags=[Tag(id=tag.id, name=tag.name, tutorial_link=tag.tutorial_link) for tag in q.tags],
+                    level=q.level,
                     defaultCode=q.default_code)
 
 

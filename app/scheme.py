@@ -94,6 +94,7 @@ class QuestionListItem(BaseModel):
     title: str
     answeredCorrectly: bool
     tags: List[Tag]
+    level: int
 
     class Config:
         schema_extra = {
@@ -156,6 +157,7 @@ class Question(BaseModel):
     answeredCorrectly: bool
     defaultCode: str
     tags: List[Tag]
+    level: int
 
     class Config:
         schema_extra = {
