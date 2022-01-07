@@ -34,7 +34,7 @@ async def questions(response: Response, dinagon_user_token: Optional[str] = Cook
     user = dinagon_user_token and get_user_by_id(dinagon_user_token, session)
     if not user:
         user = create_user(session)
-        response.set_cookie(key='dinagon_user_token', value=user.id)
+        response.set_cookie(key='dinagon_user_token', value=user.id, httponly=True)
 
     return [QuestionListItem(questionID=q.id, title=q.title, answeredCorrectly=answered_correctly, level=q.level,
                              tags=[Tag(id=tag.id, name=tag.name, tutorial_link=tag.tutorial_link) for tag in q.tags])
