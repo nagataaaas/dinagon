@@ -9,14 +9,14 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.orm.session import Session
 from sqlalchemy_utils import UUIDType
-import traceback
 import app.config
 
 meta = MetaData()
 
 engine = create_engine(
     app.config.DATABASE_URI,
-    encoding='utf-8'
+    encoding='utf-8',
+    pool_recycle=60
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

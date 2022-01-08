@@ -38,7 +38,7 @@ def load():
 
         question = Question(title=data['title'], description=data['description'],
                             test_cases=testcases, assertions=assertions, tags=[tag_dict[tag] for tag in data['tags']],
-                            default_code=data['defaultCode'])
+                            default_code=data['defaultCode'], level=data['level'])
 
         session.add_all([*testcases, *assertions, question])
 
