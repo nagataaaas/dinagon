@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import uuid
 from typing import List
+
 from fastapi.param_functions import Form
-from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel
 
 
@@ -109,6 +109,45 @@ class QuestionListItem(BaseModel):
                     Tag(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
                         name="関数理解",
                         tutorial_link='https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Functions')
+                ],
+                'level': 1
+            }
+        }
+
+
+class QuestionList(BaseModel):
+    token: uuid.UUID
+    questions: List[QuestionListItem]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                'token': '2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                'questions': [
+                    {"questionID": '2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                     "title": "add 2 value",
+                     "answeredCorrectly": False,
+                     "tags": [
+                         Tag(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                             name="算術理解",
+                             tutorial_link='https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Expressions_and_Operators'),
+                         Tag(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                             name="関数理解",
+                             tutorial_link='https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Functions')
+                     ],
+                     'level': 1},
+                    {"questionID": '2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                     "title": "add 3 value",
+                     "answeredCorrectly": True,
+                     "tags": [
+                         Tag(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                             name="算術理解",
+                             tutorial_link='https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Expressions_and_Operators'),
+                         Tag(id='2f644942-e039-4a1c-aab2-bfb8d67d5ff9',
+                             name="関数理解",
+                             tutorial_link='https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Functions')
+                     ],
+                     'level': 2}
                 ]
             }
         }

@@ -1,4 +1,7 @@
-from fastapi import FastAPI, status, HTTPException, Depends, Cookie, Response
+from itertools import chain
+from typing import Optional
+
+from fastapi import FastAPI, status, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
@@ -8,7 +11,6 @@ from app.controller import (get_user_by_id, create_user,
                             get_questions, create_answer, get_question, get_answers, get_questions_by_id)
 from app.models import get_db
 from app.scheme import *
-from itertools import chain
 
 app = FastAPI(
     title='Dinagon',
@@ -28,23 +30,23 @@ app.add_middleware(
 )
 
 
-@app.get('/question', response_model=List[QuestionListItem])
-async def questions(response: Response, dinagon_user_token: Optional[str] = Cookie(None),
-                    session: Session = Depends(get_db)):
-    user = dinagon_user_token and get_user_by_id(dinagon_user_token, session)
+@app.get('/question', response_model=QuestionList)
+async def questions(token: Optional[str] = '', session: Session = Depends(get_db)):
+    user = token and get_user_by_id(token, session)
     if not user:
         user = create_user(session)
-        response.set_cookie(key='dinagon_user_token', value=user.id, httponly=True)
 
-    return [QuestionListItem(questionID=q.id, title=q.title, answeredCorrectly=answered_correctly, level=q.level,
-                             tags=[Tag(id=tag.id, name=tag.name, tutorial_link=tag.tutorial_link) for tag in q.tags])
-            for q, answered_correctly in get_questions(user, session)]
+    return QuestionList(token=user.id,
+                        questions=[QuestionListItem(questionID=q.id, title=q.title,
+                                                    answeredCorrectly=answered_correctly, level=q.level,
+                                                    tags=[Tag(id=tag.id, name=tag.name, tutorial_link=tag.tutorial_link)
+                                                          for tag in q.tags])
+                                   for q, answered_correctly in get_questions(user, session)])
 
 
 @app.get('/question/{questionID}', response_model=Question)
-async def certain_question(questionID: uuid.UUID, dinagon_user_token: str = Cookie(...),
-                           session: Session = Depends(get_db)):
-    user = get_user_by_id(dinagon_user_token, session)
+async def certain_question(questionID: uuid.UUID, token: str, session: Session = Depends(get_db)):
+    user = get_user_by_id(token, session)
     if not user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED)
     q, answered_correctly = get_question(user, questionID, session)
@@ -70,9 +72,9 @@ async def certain_question(questionID: uuid.UUID, dinagon_user_token: str = Cook
 
 
 @app.post('/answer', response_model=UserAnswerRequest, status_code=status.HTTP_201_CREATED)
-async def answer(req: UserAnswerRequest, dinagon_user_token: str = Cookie(...), session: Session = Depends(get_db),
+async def answer(req: UserAnswerRequest, token: str, session: Session = Depends(get_db),
                  is_assertion_used: bool = True):
-    user = get_user_by_id(dinagon_user_token, session)
+    user = get_user_by_id(token, session)
     if not user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED)
 
@@ -80,8 +82,8 @@ async def answer(req: UserAnswerRequest, dinagon_user_token: str = Cookie(...), 
 
 
 @app.get('/recommendation', response_model=RecommendationResponse)
-async def recommendation(dinagon_user_token: str = Cookie(...), session: Session = Depends(get_db)):
-    user = get_user_by_id(dinagon_user_token, session)
+async def recommendation(token: str, session: Session = Depends(get_db)):
+    user = get_user_by_id(token, session)
     if not user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED)
 
