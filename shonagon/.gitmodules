@@ -1,0 +1,3 @@
+[submodule "acorn"]
+	path = acorn
+	url = https://github.com/acornjs/acorn.git

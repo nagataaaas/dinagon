@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="only">
+</head>
+<body>
+<center>
+    <table id="wrapper" align="center">
+        <tbody>
+        <tr>
+            <td align="center">
+                <table id="main" border="0" cellpadding="0" cellspacing="0">
+                    <tbody>
+                    <tr>
+                        <td>
+                            <h1 id="welcome">Welcome!</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <img id="welcome-image" src="cid:maneki_neko">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p id="text">Dinagon運営です。登録ありがとうございます。<br>ページに表示されている数字入力欄に以下の数字を入力してください</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <h1 id="auth-number">{{ auth_number }}</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p id="info">コードは20分間有効です。<br>このメールに心当たりのない場合は、本メールを破棄してください。<br>※本メールの送信アドレスは自動送信専用です。</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div id="icon-attribute">Icons made by <a href="" title="ultimatearm">ultimatearm</a> from
+                                <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        </td>
+        </tr>
+        </tbody>
+    </table>
+</center>
+<style>
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        width: 100%;
+        min-width: 600px;
+        background-color: #54ace6;
+
+        margin: 0;
+        padding: 0;
+    }
+
+    #wrapper {
+        background-color: #54ace6;
+        font-family: Verdana, "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+        width: 100%;
+        min-width: 600px;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    #wrapper > tbody > tr > td {
+        padding: 10px;
+    }
+
+    #main {
+        background-color: white;
+
+        text-align: center;
+
+        max-width: 600px;
+    }
+
+    #main > tbody > tr:last-child {
+        background-color: #fafafa;
+        border-top: grey 3px;
+        color: #656565;
+        height: 3em;
+    }
+
+    #main > tbody > tr:nth-last-child(2) > td {
+        border-top: 0;
+        border-bottom: 2px solid #eaeaea;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    #welcome {
+        font-size: 80px;
+        color: #636363;
+
+        margin: 20px auto;
+    }
+
+    #welcome-image {
+        width: 30%;
+    }
+
+    #text {
+        margin: 5% 10%;
+
+        font-size: 14px;
+    }
+
+    #auth-number {
+        font-size: 120px;
+        margin: 5% auto;
+        color: #e2bb91;
+    }
+
+    #info {
+        text-align: left;
+        color: #636363;
+        margin: auto 10%;
+
+        font-size: 12px;
+    }
+
+    #icon-attribute {
+        text-align: right;
+        font-size: 12px;
+        padding-right: 11px;
+        color: #636363;
+
+        margin-left: 30%;
+    }
+
+    #icon-attribute > a {
+        text-decoration: none;
+        color: cadetblue;
+    }
+</style>
+</body>
+</html>

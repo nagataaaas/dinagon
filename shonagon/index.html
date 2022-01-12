@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="shonagon.js" type="module"></script>
+    <script src="escodegen.js"></script>
+    <style type="text/css" media="screen">
+        #editor {
+            width: 600px;
+            height: 300px;
+        }
+
+        #editor2 {
+            width: 600px;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+<div id="editor">
+    function oddEven(val){
+    if (val % 2) return "odd"
+    return 'even'
+    }
+</div>
+<button id="convert">Convert</button>
+<textarea id="assertions">
+</textarea>
+<div id="result"></div>
+
+<div id="editor2"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.min.js" type="text/javascript"
+        charset="utf-8"></script>
+<script type="module">
+
+    document.getElementById('assertions').value = JSON.stringify(
+        {
+            assertions:
+            [
+                {
+                    message: '正しく関数が宣言されていません',
+                    assertion: {
+                        all: [{
+                            type: 'FunctionDeclaration',
+                        }]
+                    }
+                },
+                {
+                    message: '関数の引数が正しく設定されていません',
+                    assertion: {
+                        all: [{
+                            type: 'FunctionDeclaration',
+                            params: [
+                                {type: 'Identifier'},
+                            ]
+                        }]
+                    }
+                },
+                {
+                    message: '条件分岐が行われていません',
+                    assertion: {
+                        all: [
+                            {
+                                type: 'IfStatement'
+                            }
+                        ]
+                    }
+                },
+                {
+                    message: '判定条件に%が用いられていません',
+                    assertion: {
+                        all: [
+                            {
+                                type: 'BinaryExpression',
+                                operator: '%'
+                            }
+                        ]
+                    }
+                },
+                {
+                    message: '正しい文字列が使われていません',
+                    assertion: {
+                        all: [
+                            {
+                                type: 'Literal',
+                                value: 'even'
+                            },
+                            {
+                                type: 'Literal',
+                                value: 'odd'
+                            }
+                        ]
+                    }
+                },
+                {
+                    message: '判定条件の値が誤っています',
+                    assertion: {
+                        all: [
+                            {
+                                none: [{
+                                    all: [
+                                        {
+                                            type: 'BinaryExpression',
+                                            operator: '%',
+                                            left: {
+                                                type: 'Identifier'
+                                            },
+                                            right: {
+                                                type: 'Literal',
+                                                value: 2
+                                            }
+                                        },
+                                        {
+                                            none: [
+                                                {
+                                                    type: 'BinaryExpression',
+                                                    operator: '%'
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }]
+                            },
+                            {
+                                oneOf: [
+                                    {
+                                        type: 'BinaryExpression',
+                                        operator: '%',
+                                        left: {
+                                            type: 'Identifier'
+                                        },
+                                        right: {
+                                            type: 'Literal',
+                                            value: 2
+                                        }
+                                    },
+                                    {
+                                        none: [
+                                            {
+                                                type: 'BinaryExpression',
+                                                operator: '%'
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+
+                },
+                {
+                    message: '関数内でreturn文が使われていません',
+                    assertion: {
+                        all: [
+                            {
+                                type: 'ReturnStatement'
+                            }
+                        ]
+                    }
+                },
+                {
+                    message: '関数から値が返却されていません',
+                    assertion: {
+                        none: [
+                            {
+                                type: 'ReturnStatement',
+                                argument: null
+                            }
+                        ]
+                    }
+                },
+            ]
+        }
+    )
+
+    import {ConvertAllCode, ConvertAllToNode, RunAssertions} from "./shonagon.js";
+
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/twilight");
+    editor.session.setMode("ace/mode/javascript");
+
+    var editor2 = ace.edit("editor2");
+    editor2.setTheme("ace/theme/twilight");
+    editor2.session.setMode("ace/mode/javascript");
+    editor2.setReadOnly(true);
+
+    document.getElementById('convert').onclick = () => {
+        let code = editor.getValue()
+        const result = document.getElementById('result')
+
+
+        let newCode = ConvertAllCode(code);
+        const fail = RunAssertions(JSON.parse(document.getElementById('assertions').value), ConvertAllToNode(code))
+
+        console.log(fail)
+        if (fail.length) {
+            result.innerText = fail.map(j => j.message).join('\n')
+        } else {
+            result.innerText = 'success'
+        }
+
+        editor2.setValue(newCode)
+    }
+</script>
+</body>
+</html>

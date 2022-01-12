@@ -1,0 +1,389 @@
+openapi: 3.0.2
+info:
+  title: Dinagon
+  description: Server Side Api
+  version: 0.1 alpha
+servers:
+- url: http://localhost:8888/
+  description: Development Server
+paths:
+  /signup:
+    post:
+      summary: Signup
+      operationId: signup_signup_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /signup/confirm:
+    post:
+      summary: Signup Confirm
+      operationId: signup_confirm_signup_confirm_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupConfirmRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /login:
+    post:
+      summary: Login
+      operationId: login_login_post
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Body_login_login_post'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /question:
+    get:
+      summary: Questions
+      operationId: questions_question_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                title: Response Questions Question Get
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuestionListItem'
+      security:
+      - OAuth2PasswordBearer: []
+  /question/{questionID}:
+    get:
+      summary: Certain Question
+      operationId: certain_question_question__questionID__get
+      parameters:
+      - required: true
+        schema:
+          title: Questionid
+          type: string
+          format: uuid
+        name: questionID
+        in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - OAuth2PasswordBearer: []
+  /answer:
+    post:
+      summary: Answer
+      operationId: answer_answer_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAnswerRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAnswerRequest'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - OAuth2PasswordBearer: []
+components:
+  schemas:
+    Assertion:
+      title: Assertion
+      required:
+      - assertion
+      - message
+      type: object
+      properties:
+        assertion:
+          title: Assertion
+          type: string
+        message:
+          title: Message
+          type: string
+      example:
+        assertion: '''+'' in code'
+        message: 加算が行われていない可能性があります
+    Body_login_login_post:
+      title: Body_login_login_post
+      type: object
+      properties:
+        grant_type:
+          title: Grant Type
+          pattern: password|refresh_token
+          type: string
+        username:
+          title: Username
+          type: string
+        password:
+          title: Password
+          type: string
+        refresh_token:
+          title: Refresh Token
+          type: string
+    HTTPValidationError:
+      title: HTTPValidationError
+      type: object
+      properties:
+        detail:
+          title: Detail
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+    LoginResponse:
+      title: LoginResponse
+      required:
+      - access_token
+      - refresh_token
+      type: object
+      properties:
+        access_token:
+          title: Access Token
+          type: string
+        refresh_token:
+          title: Refresh Token
+          type: string
+        token_type:
+          title: Token Type
+          type: string
+          default: bearer
+      example:
+        access_token: (JWT)
+        refresh_token: (JWT)
+        token_type: bearer
+    Question:
+      title: Question
+      required:
+      - questionID
+      - title
+      - description
+      - testCases
+      - assertions
+      - answeredCorrectly
+      type: object
+      properties:
+        questionID:
+          title: Questionid
+          type: string
+          format: uuid
+        title:
+          title: Title
+          type: string
+        description:
+          title: Description
+          type: string
+        testCases:
+          title: Testcases
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCase'
+        assertions:
+          title: Assertions
+          type: array
+          items:
+            $ref: '#/components/schemas/Assertion'
+        answeredCorrectly:
+          title: Answeredcorrectly
+          type: boolean
+      example:
+        questionID: 2f644942-e039-4a1c-aab2-bfb8d67d5ff9
+        title: add 2 value
+        description: 2つの値が与えられると、それらの値を足し合わせた数字を返す関数 `add` を定義してください。
+        testCases:
+        - input: add(0, 0)
+          expected: '0'
+        - input: add(1, 1)
+          expected: '2'
+        - input: add(1.0, 1.0)
+          expected: '2.0'
+        - input: add(-1, 1)
+          expected: '0'
+        - input: add(-2, 1)
+          expected: '-1'
+        assertions:
+        - assertion: '''+'' in code'
+          message: 加算が行われていない可能性があります
+        - assertion: add(0, 0) === undefined
+          message: 値が返却されていない可能性があります
+        answeredCorrectly: false
+    QuestionListItem:
+      title: QuestionListItem
+      required:
+      - questionID
+      - title
+      - answeredCorrectly
+      type: object
+      properties:
+        questionID:
+          title: Questionid
+          type: string
+          format: uuid
+        title:
+          title: Title
+          type: string
+        answeredCorrectly:
+          title: Answeredcorrectly
+          type: boolean
+      example:
+        questionID: 2f644942-e039-4a1c-aab2-bfb8d67d5ff9
+        title: add 2 value
+        answeredCorrectly: false
+    SignupConfirmRequest:
+      title: SignupConfirmRequest
+      required:
+      - token
+      - number
+      type: object
+      properties:
+        token:
+          title: Token
+          type: string
+        number:
+          title: Number
+          type: string
+      example:
+        token: (JWT)
+        number: '0123'
+    SignupRequest:
+      title: SignupRequest
+      required:
+      - email
+      - password
+      type: object
+      properties:
+        email:
+          title: Email
+          type: string
+        password:
+          title: Password
+          type: string
+      example:
+        email: test@test.com
+        password: x0D32SaAi#5
+    SignupResponse:
+      title: SignupResponse
+      required:
+      - token
+      type: object
+      properties:
+        token:
+          title: Token
+          type: string
+      example:
+        token: (JWT)
+    TestCase:
+      title: TestCase
+      required:
+      - input
+      - expected
+      type: object
+      properties:
+        input:
+          title: Input
+          type: string
+        expected:
+          title: Expected
+          type: string
+      example:
+        input: add(1, 2)
+        expected: '3'
+    UserAnswerRequest:
+      title: UserAnswerRequest
+      required:
+      - questionID
+      - isCorrect
+      type: object
+      properties:
+        questionID:
+          title: Questionid
+          type: string
+          format: uuid
+        isCorrect:
+          title: Iscorrect
+          type: boolean
+      example:
+        questionID: 2f644942-e039-4a1c-aab2-bfb8d67d5ff9
+        isCorrect: false
+    ValidationError:
+      title: ValidationError
+      required:
+      - loc
+      - msg
+      - type
+      type: object
+      properties:
+        loc:
+          title: Location
+          type: array
+          items:
+            type: string
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+  securitySchemes:
+    OAuth2PasswordBearer:
+      type: oauth2
+      flows:
+        password:
+          scopes: {}
+          tokenUrl: login
