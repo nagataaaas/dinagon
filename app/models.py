@@ -16,7 +16,8 @@ meta = MetaData()
 engine = create_engine(
     app.config.DATABASE_URI,
     encoding='utf-8',
-    pool_recycle=60
+    pool_recycle=60,
+    connect_args={"check_same_thread": False}
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
