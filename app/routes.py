@@ -3,10 +3,10 @@ from typing import Optional
 
 from fastapi import FastAPI, status, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from sqlalchemy.orm import Session
 
-from app.config import PORT
+from app.config import PORT, DATABASE_URI
 from app.controller import (get_user_by_id, create_user,
                             get_questions, create_answer, get_question, get_answers, get_questions_by_id)
 from app.models import get_db
@@ -115,3 +115,8 @@ async def openapi_yaml():
     yaml_data = yaml.dump(data, encoding='utf-8', allow_unicode=True, sort_keys=False).decode()
     return HTMLResponse('<html><head><meta charset="utf-8"/></head><body>'
                         '<textarea rows="100" cols="200">{}</textarea></body></html>'.format(yaml_data))
+
+
+@app.get('/download/database')
+async def download_database():
+    return FileResponse(DATABASE_URI.split('/')[-1])
